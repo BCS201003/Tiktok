@@ -26,7 +26,6 @@ class VideoController extends GetxController {
     );
   }
 
-  // Like or unlike a video
   Future<void> likeVideo(String id) async {
     try {
       if (authController.currentUser == null) {

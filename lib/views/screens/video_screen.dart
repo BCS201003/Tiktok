@@ -1,4 +1,3 @@
-// lib/views/screens/video_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tiktok_tutorial/constants.dart';
@@ -13,33 +12,33 @@ class VideoScreen extends StatelessWidget {
 
   final VideoController videoController = Get.put(VideoController());
 
-  // Widget to display the user's profile picture
-  Widget buildProfile(String profilePhotoPath) {
+  Widget buildProfile(String profilePhotoPath, double size) {
     return SizedBox(
-      width: 60,
-      height: 60,
+      width: size * 0.15,
+      height: size * 0.15,
       child: Stack(
         children: [
           Positioned(
-            left: 5,
+            left: size * 0.012, // Dynamic position
             child: Container(
-              width: 50,
-              height: 50,
-              padding: const EdgeInsets.all(1),
+              width: size * 0.125, // Dynamic size
+              height: size * 0.125, // Dynamic size
+              padding: EdgeInsets.all(size * 0.002), // Dynamic padding
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(size * 0.0625), // Dynamic radius
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(size * 0.0625),
                 child: File(profilePhotoPath).existsSync()
                     ? Image.file(
                   File(profilePhotoPath),
                   fit: BoxFit.cover,
                 )
-                    : const Icon(
+                    : Icon(
                   Icons.error,
                   color: Colors.red,
+                  size: size * 0.05, // Dynamic size
                 ),
               ),
             ),
@@ -49,33 +48,33 @@ class VideoScreen extends StatelessWidget {
     );
   }
 
-  // Widget to display the music album animation
-  Widget buildMusicAlbum(String profilePhotoPath) {
+  Widget buildMusicAlbum(String profilePhotoPath, double size) {
     return SizedBox(
-      width: 60,
-      height: 60,
+      width: size * 0.15, // Dynamic size
+      height: size * 0.15, // Dynamic size
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(11),
-            height: 50,
-            width: 50,
+            padding: EdgeInsets.all(size * 0.03), // Dynamic padding
+            height: size * 0.125, // Dynamic size
+            width: size * 0.125, // Dynamic size
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Colors.grey, Colors.white],
               ),
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(size * 0.0625), // Dynamic radius
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(size * 0.0625),
               child: File(profilePhotoPath).existsSync()
                   ? Image.file(
                 File(profilePhotoPath),
                 fit: BoxFit.cover,
               )
-                  : const Icon(
+                  : Icon(
                 Icons.error,
                 color: Colors.red,
+                size: size * 0.05, // Dynamic size
               ),
             ),
           ),
@@ -86,7 +85,7 @@ class VideoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -106,16 +105,15 @@ class VideoScreen extends StatelessWidget {
                 // Video Details and Actions
                 Column(
                   children: [
-                    const SizedBox(height: 100),
+                    SizedBox(height: screenSize.height * 0.1),
                     Expanded(
                       child: Row(
                         mainAxisSize: MainAxisSize.max,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          // Video Details (Username, Caption, Song)
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.only(left: 20),
+                              padding: EdgeInsets.only(left: screenSize.width * 0.05),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,30 +121,30 @@ class VideoScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     data.username,
-                                    style: const TextStyle(
-                                      fontSize: 20,
+                                    style: TextStyle(
+                                      fontSize: screenSize.width * 0.05, // Scalable font
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
                                     data.caption,
-                                    style: const TextStyle(
-                                      fontSize: 15,
+                                    style: TextStyle(
+                                      fontSize: screenSize.width * 0.04, // Scalable font
                                       color: Colors.white,
                                     ),
                                   ),
                                   Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.music_note,
-                                        size: 15,
+                                        size: screenSize.width * 0.04, // Scalable icon
                                         color: Colors.white,
                                       ),
                                       Text(
                                         data.songName,
-                                        style: const TextStyle(
-                                          fontSize: 15,
+                                        style: TextStyle(
+                                          fontSize: screenSize.width * 0.04, // Scalable font
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -157,15 +155,14 @@ class VideoScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          // Video Actions (Profile, Like, Comment, Share, Music Album)
                           Container(
-                            width: 100,
-                            margin: EdgeInsets.only(top: size.height / 5),
+                            width: screenSize.width * 0.25, // Dynamic width
+                            margin: EdgeInsets.only(top: screenSize.height * 0.2), // Dynamic margin
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 // Profile Picture
-                                buildProfile(data.profilePhoto),
+                                buildProfile(data.profilePhoto, screenSize.width),
                                 // Like Button
                                 Column(
                                   children: [
@@ -174,41 +171,40 @@ class VideoScreen extends StatelessWidget {
                                           videoController.likeVideo(data.id),
                                       child: Icon(
                                         Icons.favorite,
-                                        size: 40,
+                                        size: screenSize.width * 0.1, // Scalable icon size
                                         color: data.likes.contains(
                                             authController.currentUser!.uid)
                                             ? Colors.red
                                             : Colors.white,
                                       ),
                                     ),
-                                    const SizedBox(height: 7),
+                                    SizedBox(height: screenSize.height * 0.01), // Dynamic spacing
                                     Text(
                                       data.likes.length.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 20,
+                                      style: TextStyle(
+                                        fontSize: screenSize.width * 0.04,
                                         color: Colors.white,
                                       ),
                                     ),
                                   ],
                                 ),
-                                // Comment Button
                                 Column(
                                   children: [
                                     InkWell(
                                       onTap: () => Get.to(() => CommentScreen(
                                         id: data.id,
                                       )),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.comment,
-                                        size: 40,
+                                        size: screenSize.width * 0.1,
                                         color: Colors.white,
                                       ),
                                     ),
-                                    const SizedBox(height: 7),
+                                    SizedBox(height: screenSize.height * 0.01),
                                     Text(
                                       data.commentCount.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 20,
+                                      style: TextStyle(
+                                        fontSize: screenSize.width * 0.04,
                                         color: Colors.white,
                                       ),
                                     ),
@@ -219,27 +215,25 @@ class VideoScreen extends StatelessWidget {
                                   children: [
                                     InkWell(
                                       onTap: () {
-                                        // Implement share functionality if needed
                                       },
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.reply,
-                                        size: 40,
+                                        size: screenSize.width * 0.1,
                                         color: Colors.white,
                                       ),
                                     ),
-                                    const SizedBox(height: 7),
+                                    SizedBox(height: screenSize.height * 0.01),
                                     Text(
                                       data.shareCount.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 20,
+                                      style: TextStyle(
+                                        fontSize: screenSize.width * 0.04,
                                         color: Colors.white,
                                       ),
                                     ),
                                   ],
                                 ),
-                                // Music Album Animation
                                 CircleAnimation(
-                                  child: buildMusicAlbum(data.profilePhoto),
+                                  child: buildMusicAlbum(data.profilePhoto, screenSize.width),
                                 ),
                               ],
                             ),

@@ -21,13 +21,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     super.initState();
     videoPlayerController = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
-        // Ensure setState is called only after initialization
         setState(() {
           videoPlayerController.play();
-          videoPlayerController.setVolume(1.0); // Ensure volume is set explicitly
+          videoPlayerController.setVolume(1.0);
         });
       }).catchError((error) {
-        // Handle potential errors during initialization
         debugPrint('Error initializing video player: $error');
       });
   }
@@ -35,13 +33,12 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   @override
   void dispose() {
     videoPlayerController.dispose();
-    super.dispose(); // Corrected disposal order
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
     return Container(
       width: size.width,
       height: size.height,
@@ -55,7 +52,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       )
           : const Center(
         child: CircularProgressIndicator(
-          color: Colors.white, // Loading indicator for initialization
+          color: Colors.white,
         ),
       ),
     );
