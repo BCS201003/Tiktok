@@ -13,7 +13,6 @@ class User {
     required this.profilePhoto,
   });
 
-  // Convert a User instance to a JSON map
   Map<String, dynamic> toJson() {
     return {
       "name": name,
@@ -23,7 +22,6 @@ class User {
     };
   }
 
-  // Create a User instance from Firestore DocumentSnapshot
   factory User.fromSnap(DocumentSnapshot snap) {
     final Map<String, dynamic> snapshot = snap.data() as Map<String, dynamic>;
     return User(
@@ -34,7 +32,6 @@ class User {
     );
   }
 
-  // Create a User instance from a SQLite Map<String, dynamic>
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       name: map['name'] ?? '',

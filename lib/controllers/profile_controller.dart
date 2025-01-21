@@ -2,7 +2,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:tiktok_tutorial/constants.dart';
-import 'package:tiktok_tutorial/models/user.dart';
 
 class ProfileController extends GetxController {
   final Rx<Map<String, dynamic>> _user = Rx<Map<String, dynamic>>({});
@@ -10,13 +9,11 @@ class ProfileController extends GetxController {
 
   Rx<String> _uid = "".obs;
 
-  // Update the current user ID and fetch profile data
   void updateUserId(String uid) {
     _uid.value = uid;
     getUserData();
   }
 
-  // Fetch user profile data
   Future<void> getUserData() async {
     try {
       List<String> thumbnails = [];
@@ -83,7 +80,6 @@ class ProfileController extends GetxController {
     }
   }
 
-  // Follow or unfollow a user
   Future<void> followUser() async {
     try {
       var doc = await firestore
@@ -94,7 +90,6 @@ class ProfileController extends GetxController {
           .get();
 
       if (!doc.exists) {
-        // Follow the user
         await firestore
             .collection('users')
             .doc(_uid.value)
@@ -112,7 +107,6 @@ class ProfileController extends GetxController {
               (value) => (int.parse(value) + 1).toString(),
         );
       } else {
-        // Unfollow the user
         await firestore
             .collection('users')
             .doc(_uid.value)

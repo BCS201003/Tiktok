@@ -1,4 +1,3 @@
-// lib/controllers/comment_controller.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:tiktok_tutorial/constants.dart';
@@ -10,13 +9,11 @@ class CommentController extends GetxController {
 
   String _postId = "";
 
-  // Update the current post ID and fetch comments
   void updatePostId(String id) {
     _postId = id;
     getComment();
   }
 
-  // Fetch comments for the current post
   void getComment() {
     _comments.bindStream(
       firestore
@@ -37,7 +34,6 @@ class CommentController extends GetxController {
     );
   }
 
-  // Post a new comment
   Future<void> postComment(String commentText) async {
     try {
       if (commentText.isNotEmpty) {
@@ -56,7 +52,6 @@ class CommentController extends GetxController {
             .doc(authController.currentUser!.uid)
             .get();
 
-        // Use Firestore auto-generated ID for the comment
         DocumentReference commentRef = firestore
             .collection('videos')
             .doc(_postId)
@@ -75,7 +70,6 @@ class CommentController extends GetxController {
 
         await commentRef.set(comment.toJson());
 
-        // Update comment count atomically
         DocumentReference videoRef = firestore.collection('videos').doc(_postId);
         await firestore.runTransaction((transaction) async {
           DocumentSnapshot videoSnap = await transaction.get(videoRef);
@@ -94,7 +88,6 @@ class CommentController extends GetxController {
     }
   }
 
-  // Like or unlike a comment
   Future<void> likeComment(String id) async {
     try {
       var uid = authController.currentUser!.uid;

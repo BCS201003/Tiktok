@@ -9,7 +9,6 @@ import 'package:tiktok_tutorial/models/video.dart';
 import 'package:video_compress/video_compress.dart';
 
 class UploadVideoController extends GetxController {
-  // Compress video
   Future<File> _compressVideo(String videoPath) async {
     final compressedVideo = await VideoCompress.compressVideo(
       videoPath,
@@ -21,44 +20,36 @@ class UploadVideoController extends GetxController {
     return compressedVideo.file!;
   }
 
-  // Save video to local storage
   Future<String> _saveVideoToLocal(String id, String videoPath) async {
     final compressedVideo = await _compressVideo(videoPath);
     final directory = await getApplicationDocumentsDirectory();
     final String newPath = path.join(directory.path, 'videos', id, path.basename(compressedVideo.path));
 
-    // Ensure the directory exists
     final newDir = Directory(path.dirname(newPath));
     if (!await newDir.exists()) {
       await newDir.create(recursive: true);
     }
 
-    // Copy the compressed video to the new path
     final savedVideo = await compressedVideo.copy(newPath);
     return savedVideo.path;
   }
 
-  // Generate and save thumbnail locally
   Future<String> _saveThumbnailToLocal(String id, String videoPath) async {
     final thumbnail = await VideoCompress.getFileThumbnail(videoPath);
     final directory = await getApplicationDocumentsDirectory();
     final String thumbnailPath = path.join(directory.path, 'thumbnails', id, path.basename(thumbnail.path));
 
-    // Ensure the directory exists
     final thumbnailDir = Directory(path.dirname(thumbnailPath));
     if (!await thumbnailDir.exists()) {
       await thumbnailDir.create(recursive: true);
     }
 
-    // Save the thumbnail
     final savedThumbnail = await thumbnail.copy(thumbnailPath);
     return savedThumbnail.path;
   }
 
-  // Upload video (save locally)
   Future<void> uploadVideo(String songName, String caption, String videoPath) async {
     try {
-      // Ensure user is logged in
       if (authController.currentUser == null) {
         Get.snackbar(
           'Error',
@@ -72,15 +63,12 @@ class UploadVideoController extends GetxController {
       DocumentSnapshot userDoc =
       await firestore.collection('users').doc(uid).get();
 
-      // Use Firestore auto-generated ID
       DocumentReference videoRef = firestore.collection('videos').doc();
       String videoId = videoRef.id;
 
-      // Save video and thumbnail locally
       String localVideoPath = await _saveVideoToLocal(videoId, videoPath);
       String localThumbnailPath = await _saveThumbnailToLocal(videoId, videoPath);
 
-      // Create video model
       Video video = Video(
         username: (userDoc.data()! as Map<String, dynamic>)['name'],
         uid: uid,
@@ -90,12 +78,11 @@ class UploadVideoController extends GetxController {
         shareCount: 0,
         songName: songName,
         caption: caption,
-        videoUrl: localVideoPath, // Local path
+        videoUrl: localVideoPath,
         profilePhoto: (userDoc.data()! as Map<String, dynamic>)['profilePhoto'],
-        thumbnail: localThumbnailPath, // Local thumbnail path
+        thumbnail: localThumbnailPath,
       );
 
-      // Save video to Firestore
       await videoRef.set(
         video.toJson(),
       );

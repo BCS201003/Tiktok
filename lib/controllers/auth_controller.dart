@@ -27,7 +27,6 @@ class AuthController extends GetxController {
     _user = Rx<model.User?>(null);
     _pickedImage = Rx<File?>(null);
 
-    // Listen to auth state changes
     auth.authStateChanges().listen((User? user) {
       if (user != null) {
         DatabaseHelper().getUserById(user.uid).then((userData) {
