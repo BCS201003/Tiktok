@@ -18,7 +18,7 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'app.db');
-
+    
     return await openDatabase(
       path,
       version: 1,
@@ -37,7 +37,6 @@ class DatabaseHelper {
         profilePhoto TEXT
       )
     ''');
-    // Create other tables as needed
   }
 
   Future<int> insertUser(Map<String, dynamic> user) async {

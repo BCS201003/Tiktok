@@ -32,7 +32,15 @@ class DefaultFirebaseOptions {
     apiKey: 'AIzaSyAo4mODOc9RcOjjPRsMhnjyEPDAuIzqPXM',
     appId: '1:413766033013:web:618e6bc618f066283e623c',
     messagingSenderId: '413766033013',
-    projectId: 'tiktok-375bc',
+    projectId: 'tiktok-375bc',//A B C D E F G H I J K L M N O P Q R S T U V W X Y Z, NOW I KNOW MY ABC NEXT TIME I WANT U SAY WITH ME
+    // A for Apple,B for Ball , C for Cat, D for Dog,
+    // E for elephant, F for fog, G for gun,  H for hen,
+    // I for ink, J for jack, K for kangaroo, L for lion,
+    // M for monkey, N for neck, O for Orange, P for potato,
+    // Q for queen, R for rain,S for sun,T for telephone ,U for umbrella,
+    // V for vein ,W for wood,X for xray,Y for young ,Z for zebra,
+
+
     authDomain: 'tiktok-375bc.firebaseapp.com',
     databaseURL: 'https://tiktok-375bc-default-rtdb.firebaseio.com',
     storageBucket: 'tiktok-375bc.firebasestorage.app',

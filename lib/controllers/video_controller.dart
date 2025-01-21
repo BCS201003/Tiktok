@@ -30,13 +30,12 @@ class VideoController extends GetxController {
     try {
       if (authController.currentUser == null) {
         Get.snackbar(
-          'Error',
+          'Error ',
           'You need to be logged in to like videos.',
           snackPosition: SnackPosition.BOTTOM,
         );
         return;
       }
-
       DocumentReference videoRef = firestore.collection('videos').doc(id);
       DocumentSnapshot doc = await videoRef.get();
       var uid = authController.currentUser!.uid;

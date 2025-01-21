@@ -23,7 +23,8 @@ class UploadVideoController extends GetxController {
   Future<String> _saveVideoToLocal(String id, String videoPath) async {
     final compressedVideo = await _compressVideo(videoPath);
     final directory = await getApplicationDocumentsDirectory();
-    final String newPath = path.join(directory.path, 'videos', id, path.basename(compressedVideo.path));
+    final String newPath = path.join(
+        directory.path, 'videos', id, path.basename(compressedVideo.path));
 
     final newDir = Directory(path.dirname(newPath));
     if (!await newDir.exists()) {
@@ -37,7 +38,8 @@ class UploadVideoController extends GetxController {
   Future<String> _saveThumbnailToLocal(String id, String videoPath) async {
     final thumbnail = await VideoCompress.getFileThumbnail(videoPath);
     final directory = await getApplicationDocumentsDirectory();
-    final String thumbnailPath = path.join(directory.path, 'thumbnails', id, path.basename(thumbnail.path));
+    final String thumbnailPath = path.join(
+        directory.path, 'thumbnails', id, path.basename(thumbnail.path));
 
     final thumbnailDir = Directory(path.dirname(thumbnailPath));
     if (!await thumbnailDir.exists()) {
@@ -48,7 +50,8 @@ class UploadVideoController extends GetxController {
     return savedThumbnail.path;
   }
 
-  Future<void> uploadVideo(String songName, String caption, String videoPath) async {
+  Future<void> uploadVideo(
+      String songName, String caption, String videoPath) async {
     try {
       if (authController.currentUser == null) {
         Get.snackbar(
@@ -61,13 +64,14 @@ class UploadVideoController extends GetxController {
 
       String uid = authController.currentUser!.uid;
       DocumentSnapshot userDoc =
-      await firestore.collection('users').doc(uid).get();
+          await firestore.collection('users').doc(uid).get();
 
       DocumentReference videoRef = firestore.collection('videos').doc();
       String videoId = videoRef.id;
 
       String localVideoPath = await _saveVideoToLocal(videoId, videoPath);
-      String localThumbnailPath = await _saveThumbnailToLocal(videoId, videoPath);
+      String localThumbnailPath =
+          await _saveThumbnailToLocal(videoId, videoPath);
 
       Video video = Video(
         username: (userDoc.data()! as Map<String, dynamic>)['name'],

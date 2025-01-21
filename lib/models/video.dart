@@ -4,27 +4,27 @@ class Video {
   String username;
   String uid;
   String id;
-  List likes;
-  int commentCount;
-  int shareCount;
   String songName;
   String caption;
   String videoUrl;
   String thumbnail;
   String profilePhoto;
+  List likes;
+  int commentCount;
+  int shareCount;
 
   Video({
     required this.username,
     required this.uid,
     required this.id,
-    required this.likes,
-    required this.commentCount,
-    required this.shareCount,
     required this.songName,
     required this.caption,
     required this.videoUrl,
     required this.profilePhoto,
     required this.thumbnail,
+    required this.likes,
+    required this.shareCount,
+    required this.commentCount,
   });
 
   Map<String, dynamic> toJson() => {

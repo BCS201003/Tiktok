@@ -5,38 +5,46 @@ class CustomIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the screen width and height using MediaQuery
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Set dynamic sizes based on screen dimensions
+    final iconWidth = screenWidth * 0.12; // 12% of screen width
+    final iconHeight = screenHeight * 0.04; // 4% of screen height
+
     return SizedBox(
-      width: 45,
-      height: 30,
+      width: iconWidth,
+      height: iconHeight,
       child: Stack(
         children: [
           Container(
-            margin: const EdgeInsets.only(
-              left: 10,
+            margin: EdgeInsets.only(
+              left: iconWidth * 0.2, // 20% of iconWidth for left margin
             ),
-            width: 38,
+            width: iconWidth * 0.84, // 84% of iconWidth for width
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 250, 45, 108,),
-              borderRadius: BorderRadius.circular(7),
+              color: const Color.fromARGB(255, 250, 45, 108),
+              borderRadius: BorderRadius.circular(iconHeight * 0.2), // Circular radius based on height
             ),
           ),
           Container(
-            margin: const EdgeInsets.only(
-              right: 10,
+            margin: EdgeInsets.only(
+              right: iconWidth * 0.2, // 20% of iconWidth for right margin
             ),
-            width: 38,
+            width: iconWidth * 0.84, // 84% of iconWidth for width
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 32, 211, 234,),
-              borderRadius: BorderRadius.circular(7),
+              color: const Color.fromARGB(255, 32, 211, 234),
+              borderRadius: BorderRadius.circular(iconHeight * 0.2), // Circular radius based on height
             ),
           ),
           Center(
             child: Container(
               height: double.infinity,
-              width: 38,
+              width: iconWidth * 0.84, // 84% of iconWidth for width
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(7),
+                borderRadius: BorderRadius.circular(iconHeight * 0.2), // Circular radius based on height
               ),
               child: const Icon(
                 Icons.add,
@@ -44,7 +52,7 @@ class CustomIcon extends StatelessWidget {
                 size: 20,
               ),
             ),
-          )
+          ),
         ],
       ),
     );

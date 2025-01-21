@@ -19,7 +19,7 @@ class SignupScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Tiktok Clone',
+              'Tiktok',
               style: TextStyle(
                 fontSize: 35,
                 color: buttonColor,
@@ -114,7 +114,7 @@ class SignupScreen extends StatelessWidget {
                 ),
                 child: const Center(
                   child: Text(
-                    'Register',
+                    'Register ',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -142,7 +142,7 @@ class SignupScreen extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'Login',
+                    'Login ',
                     style: TextStyle(fontSize: 20, color: buttonColor),
                   ),
                 ),

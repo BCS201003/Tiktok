@@ -31,7 +31,8 @@ class AuthController extends GetxController {
       if (user != null) {
         DatabaseHelper().getUserById(user.uid).then((userData) {
           if (userData != null) {
-            _user.value = model.User.fromMap(userData); // Use fromMap for local data
+            _user.value =
+                model.User.fromMap(userData); // Use fromMap for local data
             _setInitialScreen(_user.value);
           }
         });
@@ -52,7 +53,7 @@ class AuthController extends GetxController {
 
   Future<void> pickImage() async {
     final pickedImage =
-    await ImagePicker().pickImage(source: ImageSource.gallery);
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedImage != null) {
       Get.snackbar(
         'Profile Picture',
@@ -67,7 +68,8 @@ class AuthController extends GetxController {
     final directory = await getApplicationDocumentsDirectory();
     final String userId = _user.value?.uid ?? 'default';
     final String fileName = path.basename(image.path);
-    final String newPath = path.join(directory.path, 'profilePics', userId, fileName);
+    final String newPath =
+        path.join(directory.path, 'profilePics', userId, fileName);
 
     final newDir = Directory(path.dirname(newPath));
     if (!await newDir.exists()) {
@@ -125,7 +127,8 @@ class AuthController extends GetxController {
 
         final userData = await DatabaseHelper().getUserById(cred.user!.uid);
         if (userData != null) {
-          model.User user = model.User.fromMap(userData); // Use fromMap for local data
+          model.User user =
+              model.User.fromMap(userData); // Use fromMap for local data
           _user.value = user;
           _setInitialScreen(user);
         } else {

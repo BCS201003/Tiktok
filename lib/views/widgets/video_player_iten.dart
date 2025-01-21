@@ -47,14 +47,14 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       ),
       child: videoPlayerController.value.isInitialized
           ? AspectRatio(
-        aspectRatio: videoPlayerController.value.aspectRatio,
-        child: VideoPlayer(videoPlayerController),
-      )
+              aspectRatio: videoPlayerController.value.aspectRatio,
+              child: VideoPlayer(videoPlayerController),
+            )
           : const Center(
-        child: CircularProgressIndicator(
-          color: Colors.white,
-        ),
-      ),
+              child: CircularProgressIndicator(
+                color: Colors.white,
+              ),
+            ),
     );
   }
 }
