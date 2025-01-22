@@ -1,4 +1,5 @@
 // lib/controllers/video_controller.dart
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:tiktok_tutorial/models/video.dart';
 import 'package:tiktok_tutorial/controllers/auth_controller.dart';
@@ -45,10 +46,53 @@ class VideoController extends GetxController {
           commentCount: 20,
           shareCount: 15,
         ),
+        Video(
+          id: '3',
+          username: 'Hello',
+          caption: 'Check out this amazing clip!',
+          songName: 'Hello Songs Songs',
+          videoUrl: 'https://raw.githubusercontent.com/BCS201003/Tiktok/main/assets/videos/video3.mp4',
+          profilePhoto: 'https://via.placeholder.com/150',
+          thumbnail: 'https://via.placeholder.com/150',
+          uid: 'user2Uid',
+          likes: [],
+          commentCount: 20,
+          shareCount: 15,
+        ),
+        Video(
+          id: '4',
+          username: 'Hello',
+          caption: 'Check out this amazing clip!',
+          songName: 'Hello Songs Songs',
+          videoUrl: 'https://raw.githubusercontent.com/BCS201003/Tiktok/main/assets/videos/video4.mp4',
+          profilePhoto: 'https://via.placeholder.com/150',
+          thumbnail: 'https://via.placeholder.com/150',
+          uid: 'user2Uid',
+          likes: [],
+          commentCount: 20,
+          shareCount: 15,
+        ),
+        Video(
+          id: '5',
+          username: 'Hello',
+          caption: 'Check out this amazing clip!',
+          songName: 'Hello Songs Songs',
+          videoUrl: 'https://raw.githubusercontent.com/BCS201003/Tiktok/main/assets/videos/video5.mp4',
+          profilePhoto: 'https://via.placeholder.com/150',
+          thumbnail: 'https://via.placeholder.com/150',
+          uid: 'user2Uid',
+          likes: [],
+          commentCount: 20,
+          shareCount: 15,
+        ),
       ]);
-      print('Videos successfully loaded.');
+      if (kDebugMode) {
+        print('Videos successfully loaded.');
+      }
     } catch (e) {
-      print('Error loading videos: $e');
+      if (kDebugMode) {
+        print('Error loading videos: $e');
+      }
       Get.snackbar('Error', 'Failed to load videos: $e');
     }
   }

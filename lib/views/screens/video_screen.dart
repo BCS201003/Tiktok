@@ -3,17 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/controllers/video_controller.dart';
-import 'package:tiktok_tutorial/controllers/auth_controller.dart'; // Import AuthController
+import 'package:tiktok_tutorial/controllers/auth_controller.dart';
 import 'package:tiktok_tutorial/views/screens/comment_screen.dart';
 import 'package:tiktok_tutorial/views/widgets/circle_animation.dart';
 import 'package:get/get.dart';
-import 'package:tiktok_tutorial/views/widgets/video_player_iten.dart'; // Corrected import
+import 'package:tiktok_tutorial/views/widgets/video_player_iten.dart';
 
 class VideoScreen extends StatelessWidget {
   VideoScreen({Key? key}) : super(key: key);
 
   final VideoController videoController = Get.put(VideoController());
-  final AuthController authController = Get.find<AuthController>(); // Initialize AuthController
+  final AuthController authController = Get.find<AuthController>();
 
   Widget buildProfile(String profilePhotoPath, double size) {
     return SizedBox(
@@ -22,14 +22,14 @@ class VideoScreen extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            left: size * 0.012, // Dynamic position
+            left: size * 0.012,
             child: Container(
-              width: size * 0.125, // Dynamic size
-              height: size * 0.125, // Dynamic size
-              padding: EdgeInsets.all(size * 0.002), // Dynamic padding
+              width: size * 0.125,
+              height: size * 0.125,
+              padding: EdgeInsets.all(size * 0.002),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(size * 0.0625), // Dynamic radius
+                borderRadius: BorderRadius.circular(size * 0.0625),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(size * 0.0625),
@@ -46,7 +46,7 @@ class VideoScreen extends StatelessWidget {
                     : Icon(
                   Icons.error,
                   color: Colors.red,
-                  size: size * 0.05, // Dynamic size
+                  size: size * 0.05,
                 ),
               ),
             ),
@@ -58,19 +58,19 @@ class VideoScreen extends StatelessWidget {
 
   Widget buildMusicAlbum(String profilePhotoPath, double size) {
     return SizedBox(
-      width: size * 0.15, // Dynamic size
-      height: size * 0.15, // Dynamic size
+      width: size * 0.15,
+      height: size * 0.15,
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(size * 0.03), // Dynamic padding
-            height: size * 0.125, // Dynamic size
-            width: size * 0.125, // Dynamic size
+            padding: EdgeInsets.all(size * 0.03),
+            height: size * 0.125,
+            width: size * 0.125,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Colors.grey, Colors.white],
               ),
-              borderRadius: BorderRadius.circular(size * 0.0625), // Dynamic radius
+              borderRadius: BorderRadius.circular(size * 0.0625),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(size * 0.0625),
@@ -87,7 +87,7 @@ class VideoScreen extends StatelessWidget {
                   : Icon(
                 Icons.error,
                 color: Colors.red,
-                size: size * 0.05, // Dynamic size
+                size: size * 0.05,
               ),
             ),
           ),
@@ -135,7 +135,7 @@ class VideoScreen extends StatelessWidget {
                                   Text(
                                     data.username,
                                     style: TextStyle(
-                                      fontSize: screenSize.width * 0.05, // Scalable font
+                                      fontSize: screenSize.width * 0.05,
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -143,7 +143,7 @@ class VideoScreen extends StatelessWidget {
                                   Text(
                                     data.caption,
                                     style: TextStyle(
-                                      fontSize: screenSize.width * 0.04, // Scalable font
+                                      fontSize: screenSize.width * 0.04,
                                       color: Colors.white,
                                     ),
                                   ),
@@ -151,13 +151,13 @@ class VideoScreen extends StatelessWidget {
                                     children: [
                                       Icon(
                                         Icons.music_note,
-                                        size: screenSize.width * 0.04, // Scalable icon
+                                        size: screenSize.width * 0.04,
                                         color: Colors.white,
                                       ),
                                       Text(
                                         data.songName,
                                         style: TextStyle(
-                                          fontSize: screenSize.width * 0.04, // Scalable font
+                                          fontSize: screenSize.width * 0.04,
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -169,8 +169,8 @@ class VideoScreen extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            width: screenSize.width * 0.25, // Dynamic width
-                            margin: EdgeInsets.only(top: screenSize.height * 0.2), // Dynamic margin
+                            width: screenSize.width * 0.25,
+                            margin: EdgeInsets.only(top: screenSize.height * 0.2),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
@@ -183,14 +183,15 @@ class VideoScreen extends StatelessWidget {
                                       onTap: () => videoController.likeVideo(data.id),
                                       child: Icon(
                                         Icons.favorite,
-                                        size: screenSize.width * 0.1, // Scalable icon size
+                                        size: screenSize.width * 0.1,
                                         color: authController.currentUser != null &&
                                             data.likes.contains(authController.currentUser!.uid)
-                                            ? Colors.red // Change to red if liked
-                                            : Colors.white, // Default color if not liked
+                                            ? Colors.red
+                                            : Colors.white,
                                       ),
                                     ),
-                                    SizedBox(height: screenSize.height * 0.01), // Dynamic spacing
+                                    SizedBox(height: screenSize.height * 0.01),
+
                                     Text(
                                       data.likes.length.toString(),
                                       style: TextStyle(

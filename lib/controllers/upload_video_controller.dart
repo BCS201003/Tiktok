@@ -7,8 +7,14 @@ import 'package:path/path.dart' as path;
 import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/models/video.dart';
 import 'package:video_compress/video_compress.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:tiktok_tutorial/services/firebase_service.dart';
 
 class UploadVideoController extends GetxController {
+  final FirebaseService _firebaseService = Get.find<FirebaseService>();
+  final AuthController _authController = Get.find<AuthController>();
+
+  // Compress the video
   Future<File> _compressVideo(String videoPath) async {
     final compressedVideo = await VideoCompress.compressVideo(
       videoPath,
@@ -20,40 +26,44 @@ class UploadVideoController extends GetxController {
     return compressedVideo.file!;
   }
 
-  Future<String> _saveVideoToLocal(String id, String videoPath) async {
+  // Upload file to Firebase Storage and return the download URL
+  Future<String> _uploadFileToStorage(File file, String id, String type) async {
+    // type can be 'videos' or 'thumbnails'
+    Reference ref = _firebaseService.storage
+        .ref()
+        .child('$type/$id/${path.basename(file.path)}');
+
+    UploadTask uploadTask = ref.putFile(file);
+    TaskSnapshot snapshot = await uploadTask.whenComplete(() => null);
+
+    if (snapshot.state == TaskState.success) {
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } else {
+      throw Exception('Failed to upload $type.');
+    }
+  }
+
+  // Compress and upload video to Firebase Storage
+  Future<String> _processAndUploadVideo(String id, String videoPath) async {
     final compressedVideo = await _compressVideo(videoPath);
-    final directory = await getApplicationDocumentsDirectory();
-    final String newPath = path.join(
-        directory.path, 'videos', id, path.basename(compressedVideo.path));
-
-    final newDir = Directory(path.dirname(newPath));
-    if (!await newDir.exists()) {
-      await newDir.create(recursive: true);
-    }
-
-    final savedVideo = await compressedVideo.copy(newPath);
-    return savedVideo.path;
+    String videoUrl = await _uploadFileToStorage(compressedVideo, id, 'videos');
+    return videoUrl;
   }
 
-  Future<String> _saveThumbnailToLocal(String id, String videoPath) async {
+  // Generate thumbnail and upload to Firebase Storage
+  Future<String> _processAndUploadThumbnail(String id, String videoPath) async {
     final thumbnail = await VideoCompress.getFileThumbnail(videoPath);
-    final directory = await getApplicationDocumentsDirectory();
-    final String thumbnailPath = path.join(
-        directory.path, 'thumbnails', id, path.basename(thumbnail.path));
-
-    final thumbnailDir = Directory(path.dirname(thumbnailPath));
-    if (!await thumbnailDir.exists()) {
-      await thumbnailDir.create(recursive: true);
-    }
-
-    final savedThumbnail = await thumbnail.copy(thumbnailPath);
-    return savedThumbnail.path;
+    File thumbnailFile = File(thumbnail.path);
+    String thumbnailUrl = await _uploadFileToStorage(thumbnailFile, id, 'thumbnails');
+    return thumbnailUrl;
   }
 
+  // Upload video metadata to Firestore
   Future<void> uploadVideo(
       String songName, String caption, String videoPath) async {
     try {
-      if (authController.currentUser == null) {
+      if (_authController.currentUser == null) {
         Get.snackbar(
           'Error',
           'You need to be logged in to upload videos.',
@@ -62,17 +72,18 @@ class UploadVideoController extends GetxController {
         return;
       }
 
-      String uid = authController.currentUser!.uid;
+      String uid = _authController.currentUser!.uid;
       DocumentSnapshot userDoc =
-          await firestore.collection('users').doc(uid).get();
+      await _firebaseService.firestore.collection('users').doc(uid).get();
 
-      DocumentReference videoRef = firestore.collection('videos').doc();
+      DocumentReference videoRef = _firebaseService.firestore.collection('videos').doc();
       String videoId = videoRef.id;
 
-      String localVideoPath = await _saveVideoToLocal(videoId, videoPath);
-      String localThumbnailPath =
-          await _saveThumbnailToLocal(videoId, videoPath);
+      // Upload video and thumbnail to Firebase Storage
+      String videoUrl = await _processAndUploadVideo(videoId, videoPath);
+      String thumbnailUrl = await _processAndUploadThumbnail(videoId, videoPath);
 
+      // Create Video model instance
       Video video = Video(
         username: (userDoc.data()! as Map<String, dynamic>)['name'],
         uid: uid,
@@ -82,14 +93,23 @@ class UploadVideoController extends GetxController {
         shareCount: 0,
         songName: songName,
         caption: caption,
-        videoUrl: localVideoPath,
+        videoUrl: videoUrl,
         profilePhoto: (userDoc.data()! as Map<String, dynamic>)['profilePhoto'],
-        thumbnail: localThumbnailPath,
+        thumbnail: thumbnailUrl,
       );
+
+      // Save video metadata to Firestore
       await videoRef.set(
         video.toJson(),
       );
-      Get.back();
+
+      Get.back(); // Navigate back after successful upload
+
+      Get.snackbar(
+        'Success',
+        'Video uploaded successfully!',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } catch (e) {
       Get.snackbar(
         'Error Uploading Video',

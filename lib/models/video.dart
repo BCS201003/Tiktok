@@ -7,8 +7,8 @@ class Video {
   final String songName;
   final String videoUrl;
   final String profilePhoto;
-  final String thumbnail; // Required field
-  final String uid;       // Required field
+  final String thumbnail;
+  final String uid;
   final List<String> likes;
   final int commentCount;
   final int shareCount;
@@ -20,8 +20,8 @@ class Video {
     required this.songName,
     required this.videoUrl,
     required this.profilePhoto,
-    required this.thumbnail, // Ensure it's provided
-    required this.uid,       // Ensure it's provided
+    required this.thumbnail,
+    required this.uid,
     required this.likes,
     required this.commentCount,
     required this.shareCount,
