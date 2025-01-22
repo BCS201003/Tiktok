@@ -86,7 +86,6 @@ class UploadVideoController extends GetxController {
         profilePhoto: (userDoc.data()! as Map<String, dynamic>)['profilePhoto'],
         thumbnail: localThumbnailPath,
       );
-
       await videoRef.set(
         video.toJson(),
       );

@@ -1,137 +1,99 @@
 // lib/controllers/profile_controller.dart
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tiktok_tutorial/constants.dart';
+import 'package:tiktok_tutorial/controllers/auth_controller.dart';
 
 class ProfileController extends GetxController {
-  final Rx<Map<String, dynamic>> _user = Rx<Map<String, dynamic>>({});
-  Map<String, dynamic> get user => _user.value;
+  final AuthController authController = Get.find<AuthController>();
+  Map<String, dynamic> user = {};
 
-  Rx<String> _uid = "".obs;
-
-  void updateUserId(String uid) {
-    _uid.value = uid;
-    getUserData();
+  @override
+  void onInit() {
+    super.onInit();
+    // Optional: Initialize with current user's UID if needed
+    // updateUserId(authController.currentUser!.uid);
   }
 
-  Future<void> getUserData() async {
+  void updateUserId(String uid) async {
     try {
-      List<String> thumbnails = [];
-      var myVideos = await firestore
-          .collection('videos')
-          .where('uid', isEqualTo: _uid.value)
-          .get();
+      print('Fetching user data for UID: $uid'); // Debug print
+      // Fetch user data from Firestore
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
-      for (var videoDoc in myVideos.docs) {
-        thumbnails.add((videoDoc.data() as dynamic)['thumbnail']);
+      if (userDoc.exists) {
+        user = userDoc.data() as Map<String, dynamic>;
+        print('User data fetched: $user'); // Debug print
+
+        // Check if current user is following this user
+        if (authController.currentUser != null) {
+          String currentUserId = authController.currentUser!.uid;
+          List followers = user['followers'] ?? [];
+          user['isFollowing'] = followers.contains(currentUserId);
+        } else {
+          user['isFollowing'] = false;
+        }
+
+        update(); // Notify GetBuilder to rebuild UI
+      } else {
+        print('User not found'); // Debug print
+        Get.snackbar('Error', 'User not found');
       }
-
-      DocumentSnapshot userDoc =
-      await firestore.collection('users').doc(_uid.value).get();
-      final userData = userDoc.data()! as dynamic;
-      String name = userData['name'];
-      String profilePhoto = userData['profilePhoto'];
-      int likes = 0;
-      int followers = 0;
-      int following = 0;
-      bool isFollowing = false;
-
-      for (var item in myVideos.docs) {
-        likes += (item.data()['likes'] as List).length;
-      }
-
-      var followerDoc = await firestore
-          .collection('users')
-          .doc(_uid.value)
-          .collection('followers')
-          .get();
-      var followingDoc = await firestore
-          .collection('users')
-          .doc(_uid.value)
-          .collection('following')
-          .get();
-      followers = followerDoc.docs.length;
-      following = followingDoc.docs.length;
-
-      DocumentSnapshot followDoc = await firestore
-          .collection('users')
-          .doc(_uid.value)
-          .collection('followers')
-          .doc(authController.currentUser!.uid)
-          .get();
-      isFollowing = followDoc.exists;
-
-      _user.value = {
-        'followers': followers.toString(),
-        'following': following.toString(),
-        'isFollowing': isFollowing,
-        'likes': likes.toString(),
-        'profilePhoto': profilePhoto,
-        'name': name,
-        'thumbnails': thumbnails,
-      };
-      update();
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load profile data: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      print('Error fetching user data: $e'); // Debug print
+      Get.snackbar('Error', 'Failed to fetch user data: $e');
     }
   }
 
-  Future<void> followUser() async {
+  void followUser() async {
     try {
-      var doc = await firestore
-          .collection('users')
-          .doc(_uid.value)
-          .collection('followers')
-          .doc(authController.currentUser!.uid)
-          .get();
+      String currentUserId = authController.currentUser!.uid;
+      String targetUserId = user['uid'];
 
-      if (!doc.exists) {
-        await firestore
-            .collection('users')
-            .doc(_uid.value)
-            .collection('followers')
-            .doc(authController.currentUser!.uid)
-            .set({});
-        await firestore
-            .collection('users')
-            .doc(authController.currentUser!.uid)
-            .collection('following')
-            .doc(_uid.value)
-            .set({});
-        _user.value.update(
-          'followers',
-              (value) => (int.parse(value) + 1).toString(),
-        );
-      } else {
-        await firestore
-            .collection('users')
-            .doc(_uid.value)
-            .collection('followers')
-            .doc(authController.currentUser!.uid)
-            .delete();
-        await firestore
-            .collection('users')
-            .doc(authController.currentUser!.uid)
-            .collection('following')
-            .doc(_uid.value)
-            .delete();
-        _user.value.update(
-          'followers',
-              (value) => (int.parse(value) - 1).toString(),
-        );
-      }
-      _user.value.update('isFollowing', (value) => !value);
-      update();
+      // Update followers of target user
+      await FirebaseFirestore.instance.collection('users').doc(targetUserId).update({
+        'followers': FieldValue.arrayUnion([currentUserId]),
+      });
+
+      // Update following list of current user
+      await FirebaseFirestore.instance.collection('users').doc(currentUserId).update({
+        'following': FieldValue.arrayUnion([targetUserId]),
+      });
+
+      // Update local user data
+      user['isFollowing'] = true;
+      user['followers'] = (user['followers'] as List).length + 1;
+
+      update(); // Notify GetBuilder to rebuild UI
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to follow/unfollow: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      print('Error following user: $e'); // Debug print
+      Get.snackbar('Error', 'Failed to follow user: $e');
+    }
+  }
+
+  void unfollowUser() async {
+    try {
+      String currentUserId = authController.currentUser!.uid;
+      String targetUserId = user['uid'];
+
+      // Update followers of target user
+      await FirebaseFirestore.instance.collection('users').doc(targetUserId).update({
+        'followers': FieldValue.arrayRemove([currentUserId]),
+      });
+
+      // Update following list of current user
+      await FirebaseFirestore.instance.collection('users').doc(currentUserId).update({
+        'following': FieldValue.arrayRemove([targetUserId]),
+      });
+
+      // Update local user data
+      user['isFollowing'] = false;
+      user['followers'] = (user['followers'] as List).length - 1;
+
+      update(); // Notify GetBuilder to rebuild UI
+    } catch (e) {
+      print('Error unfollowing user: $e'); // Debug print
+      Get.snackbar('Error', 'Failed to unfollow user: $e');
     }
   }
 }

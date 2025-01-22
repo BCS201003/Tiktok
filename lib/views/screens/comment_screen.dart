@@ -45,7 +45,7 @@ class _CommentScreenState extends State<CommentScreen> {
                 return const Center(
                   child: Text(
                     'No comments yet.',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.black),
                   ),
                 );
               }
@@ -75,7 +75,7 @@ class _CommentScreenState extends State<CommentScreen> {
                             comment.comment,
                             style: const TextStyle(
                               fontSize: 20,
-                              color: Colors.white,
+                              color: Colors.black,
                               fontWeight: FontWeight.w500,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -91,7 +91,7 @@ class _CommentScreenState extends State<CommentScreen> {
                           ),
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         ),
                         const SizedBox(
@@ -101,7 +101,7 @@ class _CommentScreenState extends State<CommentScreen> {
                           '${comment.likes.length} likes',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         )
                       ],
@@ -115,7 +115,7 @@ class _CommentScreenState extends State<CommentScreen> {
                         color: comment.likes
                             .contains(authController.currentUser!.uid)
                             ? Colors.red
-                            : Colors.white,
+                            : Colors.black,
                       ),
                     ),
                   );
@@ -133,13 +133,13 @@ class _CommentScreenState extends State<CommentScreen> {
                     controller: _commentController,
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                     decoration: const InputDecoration(
                       labelText: 'Comment',
                       labelStyle: TextStyle(
                         fontSize: 20,
-                        color: Colors.white,
+                        color: Colors.black,
                         fontWeight: FontWeight.w700,
                       ),
                       enabledBorder: UnderlineInputBorder(

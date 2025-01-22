@@ -1,16 +1,19 @@
+// lib/views/screens/video_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/controllers/video_controller.dart';
+import 'package:tiktok_tutorial/controllers/auth_controller.dart'; // Import AuthController
 import 'package:tiktok_tutorial/views/screens/comment_screen.dart';
 import 'package:tiktok_tutorial/views/widgets/circle_animation.dart';
 import 'package:get/get.dart';
-import 'package:tiktok_tutorial/views/widgets/video_player_iten.dart';
+import 'package:tiktok_tutorial/views/widgets/video_player_iten.dart'; // Corrected import
 
 class VideoScreen extends StatelessWidget {
   VideoScreen({Key? key}) : super(key: key);
 
   final VideoController videoController = Get.put(VideoController());
+  final AuthController authController = Get.find<AuthController>(); // Initialize AuthController
 
   Widget buildProfile(String profilePhotoPath, double size) {
     return SizedBox(
@@ -30,7 +33,12 @@ class VideoScreen extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(size * 0.0625),
-                child: File(profilePhotoPath).existsSync()
+                child: profilePhotoPath.startsWith('http')
+                    ? Image.network(
+                  profilePhotoPath,
+                  fit: BoxFit.cover,
+                )
+                    : File(profilePhotoPath).existsSync()
                     ? Image.file(
                   File(profilePhotoPath),
                   fit: BoxFit.cover,
@@ -66,7 +74,12 @@ class VideoScreen extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(size * 0.0625),
-              child: File(profilePhotoPath).existsSync()
+              child: profilePhotoPath.startsWith('http')
+                  ? Image.network(
+                profilePhotoPath,
+                fit: BoxFit.cover,
+              )
+                  : File(profilePhotoPath).existsSync()
                   ? Image.file(
                 File(profilePhotoPath),
                 fit: BoxFit.cover,
@@ -167,15 +180,14 @@ class VideoScreen extends StatelessWidget {
                                 Column(
                                   children: [
                                     InkWell(
-                                      onTap: () =>
-                                          videoController.likeVideo(data.id),
+                                      onTap: () => videoController.likeVideo(data.id),
                                       child: Icon(
                                         Icons.favorite,
                                         size: screenSize.width * 0.1, // Scalable icon size
-                                        color: data.likes.contains(
-                                            authController.currentUser!.uid)
-                                            ? Colors.red
-                                            : Colors.white,
+                                        color: authController.currentUser != null &&
+                                            data.likes.contains(authController.currentUser!.uid)
+                                            ? Colors.red // Change to red if liked
+                                            : Colors.white, // Default color if not liked
                                       ),
                                     ),
                                     SizedBox(height: screenSize.height * 0.01), // Dynamic spacing
@@ -188,6 +200,7 @@ class VideoScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
+                                // Comment Button
                                 Column(
                                   children: [
                                     InkWell(
@@ -215,6 +228,7 @@ class VideoScreen extends StatelessWidget {
                                   children: [
                                     InkWell(
                                       onTap: () {
+                                        // Share functionality yahan implement karein
                                       },
                                       child: Icon(
                                         Icons.reply,
@@ -232,6 +246,7 @@ class VideoScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
+                                // Animated Music Album
                                 CircleAnimation(
                                   child: buildMusicAlbum(data.profilePhoto, screenSize.width),
                                 ),

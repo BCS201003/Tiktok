@@ -1,60 +1,89 @@
 // lib/controllers/video_controller.dart
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/models/video.dart';
+import 'package:tiktok_tutorial/controllers/auth_controller.dart';
 
 class VideoController extends GetxController {
-  final Rx<List<Video>> _videoList = Rx<List<Video>>([]);
-  List<Video> get videoList => _videoList.value;
+  final RxList<Video> _videoList = <Video>[].obs;
+
+  RxList<Video> get videoList => _videoList;
+
+  final AuthController authController = Get.find<AuthController>();
 
   @override
   void onInit() {
     super.onInit();
-    _videoList.bindStream(
-      firestore
-          .collection('videos')
-          .orderBy('datePublished', descending: true)
-          .snapshots()
-          .map((QuerySnapshot query) {
-        List<Video> retVal = [];
-        for (var element in query.docs) {
-          retVal.add(Video.fromSnap(element));
-        }
-        return retVal;
-      }),
-    );
+    loadVideos();
   }
 
-  Future<void> likeVideo(String id) async {
+  void loadVideos() {
     try {
-      if (authController.currentUser == null) {
-        Get.snackbar(
-          'Error ',
-          'You need to be logged in to like videos.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return;
-      }
-      DocumentReference videoRef = firestore.collection('videos').doc(id);
-      DocumentSnapshot doc = await videoRef.get();
-      var uid = authController.currentUser!.uid;
+      _videoList.assignAll([
+        Video(
+          id: '1',
+          username: 'Muhammad Saad Hussain',
+          caption: 'Hello.',
+          songName: 'World Songs',
+          videoUrl: 'https://raw.githubusercontent.com/BCS201003/Tiktok/main/assets/videos/video1.mp4',
+          profilePhoto: 'https://via.placeholder.com/150',
+          thumbnail: 'https://via.placeholder.com/150',
+          uid: 'user1Uid',
+          likes: [],
+          commentCount: 10,
+          shareCount: 5,
+        ),
+        Video(
+          id: '2',
+          username: 'Hello',
+          caption: 'Check out this amazing clip!',
+          songName: 'Hello Songs Songs',
+          videoUrl: 'https://raw.githubusercontent.com/BCS201003/Tiktok/main/assets/videos/video2.mp4',
+          profilePhoto: 'https://via.placeholder.com/150',
+          thumbnail: 'https://via.placeholder.com/150',
+          uid: 'user2Uid',
+          likes: [],
+          commentCount: 20,
+          shareCount: 15,
+        ),
+      ]);
+      print('Videos successfully loaded.');
+    } catch (e) {
+      print('Error loading videos: $e');
+      Get.snackbar('Error', 'Failed to load videos: $e');
+    }
+  }
 
-      if ((doc.data()! as dynamic)['likes'].contains(uid)) {
-        await videoRef.update({
-          'likes': FieldValue.arrayRemove([uid]),
-        });
+  /// Like or unlike a video
+  void likeVideo(String id) {
+    try {
+      int index = _videoList.indexWhere((video) => video.id == id);
+
+      if (index != -1) {
+        Video video = _videoList[index];
+        String uid = authController.currentUser?.uid ?? ''; // Get current user ID
+
+        if (uid.isEmpty) {
+          Get.snackbar('Error', 'User not logged in.');
+          return;
+        }
+
+        if (video.likes.contains(uid)) {
+          // If already liked, remove the like
+          video.likes.remove(uid);
+        } else {
+          // If not liked, add the like
+          video.likes.add(uid);
+        }
+
+        _videoList[index] = video;
+        _videoList.refresh(); // Notify GetX about the update
+        print('Video liked status updated for video ID: $id');
       } else {
-        await videoRef.update({
-          'likes': FieldValue.arrayUnion([uid]),
-        });
+        print('Video with ID $id not found.');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to like video: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      print('Error liking video: $e');
+      Get.snackbar('Error', 'Failed to like video: $e');
     }
   }
 }
