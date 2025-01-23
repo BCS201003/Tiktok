@@ -1,7 +1,7 @@
 // lib/views/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:tiktok_tutorial/constants.dart';
-import 'package:tiktok_tutorial/views/screens/meaasge_screen.dart';
+import 'package:tiktok_tutorial/views/screens/message_screen.dart';
 import 'package:tiktok_tutorial/views/widgets/custom_icon.dart';
 import 'package:tiktok_tutorial/views/screens/video_screen.dart';
 import 'package:tiktok_tutorial/views/screens/search_screen.dart';
