@@ -1,118 +1,98 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// Updated comment_controller.dart with Fixes for Undefined Names
+
 import 'package:get/get.dart';
-import 'package:tiktok_tutorial/constants.dart';
-import 'package:tiktok_tutorial/models/comment.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CommentController extends GetxController {
-  final Rx<List<Comment>> _comments = Rx<List<Comment>>([]);
-  List<Comment> get comments => _comments.value;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
-  String _postId = "";
+  // Observable list for comments
+  var comments = <Map<String, dynamic>>[].obs;
 
-  void updatePostId(String id) {
-    _postId = id;
-    getComment();
-  }
-
-  void getComment() {
-    _comments.bindStream(
-      firestore
-          .collection('videos')
-          .doc(_postId)
-          .collection('comments')
-          .orderBy('datePublished', descending: true)
-          .snapshots()
-          .map(
-            (QuerySnapshot query) {
-          List<Comment> retValue = [];
-          for (var element in query.docs) {
-            retValue.add(Comment.fromSnap(element));
-          }
-          return retValue;
-        },
-      ),
-    );
-  }
-
-  Future<void> postComment(String commentText) async {
+  // Fetch comments for a specific video
+  Future<void> fetchComments(String videoId) async {
     try {
-      if (commentText.isNotEmpty) {
-        // Ensure user is logged in
-        if (authController.currentUser == null) {
-          Get.snackbar(
-            'Error',
-            'You need to be logged in to comment',
-            snackPosition: SnackPosition.BOTTOM,
-          );
-          return;
-        }
+      var snapshot = await firestore
+          .collection('videos')
+          .doc(videoId)
+          .collection('comments')
+          .orderBy('timestamp', descending: true)
+          .get();
 
-        DocumentSnapshot userDoc = await firestore
-            .collection('users')
-            .doc(authController.currentUser!.uid)
-            .get();
-
-        DocumentReference commentRef = firestore
-            .collection('videos')
-            .doc(_postId)
-            .collection('comments')
-            .doc();
-
-        Comment comment = Comment(
-          username: (userDoc.data()! as dynamic)['name'],
-          comment: commentText.trim(),
-          datePublished: DateTime.now(),
-          likes: [],
-          profilePhoto: (userDoc.data()! as dynamic)['profilePhoto'],
-          uid: authController.currentUser!.uid,
-          id: commentRef.id,
-        );
-
-        await commentRef.set(comment.toJson());
-
-        DocumentReference videoRef = firestore.collection('videos').doc(_postId);
-        await firestore.runTransaction((transaction) async {
-          DocumentSnapshot videoSnap = await transaction.get(videoRef);
-          if (videoSnap.exists) {
-            int currentCount = (videoSnap.data()! as dynamic)['commentCount'] ?? 0;
-            transaction.update(videoRef, {'commentCount': currentCount + 1});
-          }
-        });
-      }
+      comments.value = snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      Get.snackbar(
-        'Error While Commenting',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      print('Error fetching comments: $e');
     }
   }
 
-  Future<void> likeComment(String id) async {
+  // Add a new comment
+  Future<void> addComment(String videoId, String content) async {
     try {
-      var uid = authController.currentUser!.uid;
+      String? uid = auth.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('User is not logged in');
+      }
+
+      DocumentSnapshot userDoc = await firestore.collection('users').doc(uid).get();
+      if (!userDoc.exists) {
+        throw Exception('User data not found');
+      }
+
+      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+      await firestore.collection('videos').doc(videoId).collection('comments').add({
+        'uid': uid,
+        'username': userData['username'],
+        'profilePic': userData['profilePictureUrl'],
+        'content': content,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      fetchComments(videoId); // Refresh comments after adding
+    } catch (e) {
+      print('Error adding comment: $e');
+    }
+  }
+
+  // Like or unlike a comment
+  Future<void> toggleLike(String videoId, String commentId) async {
+    try {
+      String? uid = auth.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('User is not logged in');
+      }
+
       DocumentReference commentRef = firestore
           .collection('videos')
-          .doc(_postId)
+          .doc(videoId)
           .collection('comments')
-          .doc(id);
-      DocumentSnapshot doc = await commentRef.get();
+          .doc(commentId);
 
-      if ((doc.data()! as dynamic)['likes'].contains(uid)) {
-        await commentRef.update({
-          'likes': FieldValue.arrayRemove([uid]),
-        });
+      DocumentSnapshot commentSnapshot = await commentRef.get();
+
+      if (commentSnapshot.exists) {
+        List<dynamic> likes = commentSnapshot.get('likes') ?? [];
+
+        if (likes.contains(uid)) {
+          // Unlike the comment
+          await commentRef.update({
+            'likes': FieldValue.arrayRemove([uid]),
+          });
+        } else {
+          // Like the comment
+          await commentRef.update({
+            'likes': FieldValue.arrayUnion([uid]),
+          });
+        }
+
+        fetchComments(videoId); // Refresh comments to update UI
       } else {
-        await commentRef.update({
-          'likes': FieldValue.arrayUnion([uid]),
-        });
+        throw Exception('Comment not found');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error While Liking Comment',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      print('Error toggling like: $e');
     }
   }
 }

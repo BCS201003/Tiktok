@@ -1,71 +1,86 @@
+// Corrected SearchScreen Implementation from Your Existing Project
+
 import 'package:flutter/material.dart';
-import 'package:tiktok_tutorial/controllers/search_controller.dart';
 import 'package:get/get.dart';
-import 'package:tiktok_tutorial/models/user.dart';
-import 'package:tiktok_tutorial/views/screens/profile_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SearchScreen extends StatelessWidget {
-  SearchScreen({Key? key}) : super(key: key);
-
-  final MySearchController searchController = Get.put(MySearchController());
+  final TextEditingController _searchController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.red,
-          title: TextFormField(
-            decoration: const InputDecoration(
-              filled: false,
-              hintText: 'Search',
-              hintStyle: TextStyle(
-                fontSize: 18,
-                color: Colors.white,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Search'),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search by username',
+                border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () => _searchUser(_searchController.text.trim()),
+                ),
               ),
             ),
-            onFieldSubmitted: (value) => searchController.searchUser(value),
           ),
-        ),
-        body: searchController.searchedUsers.isEmpty
-            ? const Center(
-                child: Text(
-                  'Search for users!',
-                  style: TextStyle(
-                    fontSize: 25,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-            : ListView.builder(
-                itemCount: searchController.searchedUsers.length,
-                itemBuilder: (context, index) {
-                  User user = searchController.searchedUsers[index];
-                  return InkWell(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ProfileScreen(uid: user.uid),
-                      ),
-                    ),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: NetworkImage(
-                          user.profilePhoto,
-                        ),
-                      ),
-                      title: Text(
-                        user.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-      );
+          Expanded(
+            child: StreamBuilder(
+              stream: _firestore.collection('users').snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final users = snapshot.data!.docs;
+                return ListView.builder(
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index].data() as Map<String, dynamic>;
+                    return ListTile(
+                      title: Text(user['username'] ?? 'Unknown'),
+                      subtitle: Text(user['email'] ?? ''),
+                      onTap: () {
+                        print('User ID: ${user['uid']}');
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _searchUser(String username) {
+    if (username.isEmpty) {
+      Get.snackbar('Error', 'Please enter a username to search');
+      return;
+    }
+
+    // Example: Implement search functionality (adjust query as needed)
+    _firestore
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .get()
+        .then((snapshot) {
+      if (snapshot.docs.isNotEmpty) {
+        final user = snapshot.docs.first.data();
+        print('User found: ${user['username']} with UID: ${user['uid']}');
+      } else {
+        Get.snackbar('No Results', 'No user found with that username');
+      }
+    }).catchError((error) {
+      print('Error searching user: $error');
+      Get.snackbar('Error', 'Something went wrong while searching');
     });
   }
 }

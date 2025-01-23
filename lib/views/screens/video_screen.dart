@@ -15,86 +15,7 @@ class VideoScreen extends StatelessWidget {
   final VideoController videoController = Get.put(VideoController());
   final AuthController authController = Get.find<AuthController>();
 
-  Widget buildProfile(String profilePhotoPath, double size) {
-    return SizedBox(
-      width: size * 0.15,
-      height: size * 0.15,
-      child: Stack(
-        children: [
-          Positioned(
-            left: size * 0.012,
-            child: Container(
-              width: size * 0.125,
-              height: size * 0.125,
-              padding: EdgeInsets.all(size * 0.002),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(size * 0.0625),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(size * 0.0625),
-                child: profilePhotoPath.startsWith('http')
-                    ? Image.network(
-                  profilePhotoPath,
-                  fit: BoxFit.cover,
-                )
-                    : File(profilePhotoPath).existsSync()
-                    ? Image.file(
-                  File(profilePhotoPath),
-                  fit: BoxFit.cover,
-                )
-                    : Icon(
-                  Icons.error,
-                  color: Colors.red,
-                  size: size * 0.05,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildMusicAlbum(String profilePhotoPath, double size) {
-    return SizedBox(
-      width: size * 0.15,
-      height: size * 0.15,
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(size * 0.03),
-            height: size * 0.125,
-            width: size * 0.125,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.grey, Colors.white],
-              ),
-              borderRadius: BorderRadius.circular(size * 0.0625),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(size * 0.0625),
-              child: profilePhotoPath.startsWith('http')
-                  ? Image.network(
-                profilePhotoPath,
-                fit: BoxFit.cover,
-              )
-                  : File(profilePhotoPath).existsSync()
-                  ? Image.file(
-                File(profilePhotoPath),
-                fit: BoxFit.cover,
-              )
-                  : Icon(
-                Icons.error,
-                color: Colors.red,
-                size: size * 0.05,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ... [Other methods]
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +112,6 @@ class VideoScreen extends StatelessWidget {
                                       ),
                                     ),
                                     SizedBox(height: screenSize.height * 0.01),
-
                                     Text(
                                       data.likes.length.toString(),
                                       style: TextStyle(
@@ -206,7 +126,7 @@ class VideoScreen extends StatelessWidget {
                                   children: [
                                     InkWell(
                                       onTap: () => Get.to(() => CommentScreen(
-                                        id: data.id,
+                                        postId: data.id, // Changed 'id' to 'postId'
                                       )),
                                       child: Icon(
                                         Icons.comment,

@@ -1,7 +1,7 @@
 // lib/views/widgets/video_player_item.dart
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:get/get.dart'; // Agar GetX use kar rahe hain snackbars ke liye
+import 'package:get/get.dart'; // For GetX snackbars
 
 class VideoPlayerItem extends StatefulWidget {
   final String videoUrl;
@@ -22,17 +22,19 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   @override
   void initState() {
     super.initState();
-    videoPlayerController = VideoPlayerController.network(widget.videoUrl)
+    videoPlayerController = VideoPlayerController.networkUrl(
+      Uri.parse(widget.videoUrl), // Updated to networkUrl with Uri
+    )
       ..initialize().then((_) {
         setState(() {
           _isInitialized = true;
         });
         videoPlayerController.play();
         videoPlayerController.setVolume(1.0);
-        videoPlayerController.setLooping(true); // Looping enable karna
+        videoPlayerController.setLooping(true); // Looping enabled
       }).catchError((error) {
         debugPrint('Error initializing video player: $error');
-        Get.snackbar('Error', 'Failed to load video'); // Agar GetX use kar rahe hain
+        Get.snackbar('Error', 'Failed to load video'); // Using GetX snackbar
       });
   }
 

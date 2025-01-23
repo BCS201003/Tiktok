@@ -1,179 +1,93 @@
 // lib/views/screens/comment_screen.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:tiktok_tutorial/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Added import
 import 'package:tiktok_tutorial/controllers/comment_controller.dart';
-import 'package:timeago/timeago.dart' as tago;
 
-class CommentScreen extends StatefulWidget {
-  final String id;
-  const CommentScreen({
-    Key? key,
-    required this.id,
-  }) : super(key: key);
-
-  @override
-  State<CommentScreen> createState() => _CommentScreenState();
-}
-
-class _CommentScreenState extends State<CommentScreen> {
-  final TextEditingController _commentController = TextEditingController();
-
+class CommentScreen extends StatelessWidget {
+  final String postId;
   final CommentController commentController = Get.put(CommentController());
 
-  @override
-  void initState() {
-    super.initState();
-    commentController.updatePostId(widget.id);
-  }
+  CommentScreen({Key? key, required this.postId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    // Load comments for the specified post
+    commentController.fetchComments(postId);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Comments'),
-        backgroundColor: backgroundColor,
+        title: Text('Comments'),
       ),
       body: Column(
         children: [
           Expanded(
-            child: Obx(() {
-              if (commentController.comments.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'No comments yet.',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                );
-              }
-              return ListView.builder(
+            child: Obx(
+                  () => ListView.builder(
                 itemCount: commentController.comments.length,
                 itemBuilder: (context, index) {
                   final comment = commentController.comments[index];
+
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Colors.black,
-                      backgroundImage: File(comment.profilePhoto).existsSync()
-                          ? FileImage(File(comment.profilePhoto))
-                          : const AssetImage('assets/default_profile.png') as ImageProvider,
+                      backgroundImage: NetworkImage(
+                        comment['profilePic'] ?? 'https://via.placeholder.com/150',
+                      ),
                     ),
-                    title: Row(
+                    title: Text(comment['username'] ?? 'Anonymous'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "${comment.username}  ",
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.red,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            comment.comment,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
+                        Text(comment['content'] ?? ''),
+                        SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Text(
+                              comment['timestamp'] != null
+                                  ? (comment['timestamp'] as Timestamp).toDate().toString()
+                                  : '',
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    subtitle: Row(
-                      children: [
-                        Text(
-                          tago.format(
-                            comment.datePublished.toDate(),
-                          ),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          '${comment.likes.length} likes',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black,
-                          ),
+                            SizedBox(width: 10),
+                            IconButton(
+                              icon: Icon(
+                                comment['likes'] != null && (comment['likes'] as List).contains(commentController.auth.currentUser!.uid)
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                              ),
+                              onPressed: () => commentController.toggleLike(postId, comment['id']), // Changed 'commentId' to 'id'
+                            ),
+                          ],
                         )
                       ],
                     ),
-                    trailing: InkWell(
-                      onTap: () =>
-                          commentController.likeComment(comment.id),
-                      child: Icon(
-                        Icons.favorite,
-                        size: 25,
-                        color: comment.likes
-                            .contains(authController.currentUser!.uid)
-                            ? Colors.red
-                            : Colors.black,
-                      ),
-                    ),
                   );
                 },
-              );
-            }),
+              ),
+            ),
           ),
-          const Divider(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _commentController,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: 'Comment',
-                      labelStyle: TextStyle(
-                        fontSize: 20,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.red,
-                        ),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.red,
-                        ),
-                      ),
+                  child: TextField(
+                    controller: TextEditingController(),
+                    decoration: InputDecoration(
+                      hintText: 'Add a comment...',
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-                TextButton(
+                IconButton(
+                  icon: Icon(Icons.send),
                   onPressed: () {
-                    String commentText = _commentController.text.trim();
-                    if (commentText.isNotEmpty) {
-                      commentController.postComment(commentText);
-                      _commentController.clear();
-                    }
+                    commentController.addComment(postId, 'Your comment here');
                   },
-                  child: const Text(
-                    'Send',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
                 ),
               ],
             ),
-          ),
+          )
         ],
       ),
     );

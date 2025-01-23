@@ -1,11 +1,13 @@
+// lib/views/widgets/text_input_field.dart
 import 'package:flutter/material.dart';
-import 'package:tiktok_tutorial/constants.dart';
+// Removed unused import: import 'package:tiktok_tutorial/constants.dart';
 
 class TextInputField extends StatelessWidget {
   final TextEditingController controller;
   final String labelText;
   final bool isObscure;
   final IconData icon;
+
   const TextInputField({
     Key? key,
     required this.controller,
@@ -25,15 +27,17 @@ class TextInputField extends StatelessWidget {
           fontSize: 20,
         ),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(5),
-            borderSide: const BorderSide(
-              color: borderColor,
-            )),
+          borderRadius: BorderRadius.circular(5),
+          borderSide: const BorderSide(
+            color: Colors.grey, // Replaced 'borderColor' with Colors.grey
+          ),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(5),
-            borderSide: const BorderSide(
-              color: borderColor,
-            )),
+          borderRadius: BorderRadius.circular(5),
+          borderSide: const BorderSide(
+            color: Colors.grey, // Replaced 'borderColor' with Colors.grey
+          ),
+        ),
       ),
       obscureText: isObscure,
     );

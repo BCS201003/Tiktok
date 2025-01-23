@@ -2,13 +2,12 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/models/video.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:tiktok_tutorial/services/firebase_service.dart';
+import 'package:tiktok_tutorial/controllers/auth_controller.dart';
 
 class UploadVideoController extends GetxController {
   final FirebaseService _firebaseService = Get.find<FirebaseService>();

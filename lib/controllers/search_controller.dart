@@ -5,6 +5,9 @@ import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/models/user.dart';
 
 class MySearchController extends GetxController {
+  // Added FirebaseFirestore instance
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
   final Rx<List<User>> _searchedUsers = Rx<List<User>>([]);
   List<User> get searchedUsers => _searchedUsers.value;
 

@@ -1,99 +1,54 @@
 // lib/controllers/profile_controller.dart
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:tiktok_tutorial/constants.dart';
-import 'package:tiktok_tutorial/controllers/auth_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileController extends GetxController {
-  final AuthController authController = Get.find<AuthController>();
-  Map<String, dynamic> user = {};
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  @override
-  void onInit() {
-    super.onInit();
-    // Optional: Initialize with current user's UID if needed
-    // updateUserId(authController.currentUser!.uid);
-  }
+  // Changed Rx<Map<String, dynamic>> to RxMap<String, dynamic>
+  final RxMap<String, dynamic> _user = <String, dynamic>{}.obs;
+  Map<String, dynamic> get user => _user.value;
 
-  void updateUserId(String uid) async {
+  final RxBool isLoading = true.obs;
+
+  Future<void> loadUserData(String uid) async {
     try {
-      print('Fetching user data for UID: $uid'); // Debug print
-      // Fetch user data from Firestore
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
-      if (userDoc.exists) {
-        user = userDoc.data() as Map<String, dynamic>;
-        print('User data fetched: $user'); // Debug print
-
-        // Check if current user is following this user
-        if (authController.currentUser != null) {
-          String currentUserId = authController.currentUser!.uid;
-          List followers = user['followers'] ?? [];
-          user['isFollowing'] = followers.contains(currentUserId);
-        } else {
-          user['isFollowing'] = false;
-        }
-
-        update(); // Notify GetBuilder to rebuild UI
+      isLoading.value = true;
+      DocumentSnapshot snapshot = await _firestore.collection('users').doc(uid).get();
+      if (snapshot.exists) {
+        _user.value = snapshot.data() as Map<String, dynamic>;
       } else {
-        print('User not found'); // Debug print
-        Get.snackbar('Error', 'User not found');
+        _user.value = {};
       }
     } catch (e) {
-      print('Error fetching user data: $e'); // Debug print
-      Get.snackbar('Error', 'Failed to fetch user data: $e');
+      print("Error loading user data: $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  void followUser() async {
+  Future<void> followUser(String uid) async {
     try {
-      String currentUserId = authController.currentUser!.uid;
-      String targetUserId = user['uid'];
+      String currentUid = _auth.currentUser!.uid;
+      DocumentReference userRef = _firestore.collection('users').doc(uid);
 
-      // Update followers of target user
-      await FirebaseFirestore.instance.collection('users').doc(targetUserId).update({
-        'followers': FieldValue.arrayUnion([currentUserId]),
-      });
-
-      // Update following list of current user
-      await FirebaseFirestore.instance.collection('users').doc(currentUserId).update({
-        'following': FieldValue.arrayUnion([targetUserId]),
-      });
-
-      // Update local user data
-      user['isFollowing'] = true;
-      user['followers'] = (user['followers'] as List).length + 1;
-
-      update(); // Notify GetBuilder to rebuild UI
+      DocumentSnapshot userSnapshot = await userRef.get();
+      if (userSnapshot.exists) {
+        List<dynamic> followers = userSnapshot.get('followers') ?? [];
+        if (followers.contains(currentUid)) {
+          await userRef.update({
+            'followers': FieldValue.arrayRemove([currentUid]),
+          });
+        } else {
+          await userRef.update({
+            'followers': FieldValue.arrayUnion([currentUid]),
+          });
+        }
+      }
     } catch (e) {
-      print('Error following user: $e'); // Debug print
-      Get.snackbar('Error', 'Failed to follow user: $e');
-    }
-  }
-
-  void unfollowUser() async {
-    try {
-      String currentUserId = authController.currentUser!.uid;
-      String targetUserId = user['uid'];
-
-      // Update followers of target user
-      await FirebaseFirestore.instance.collection('users').doc(targetUserId).update({
-        'followers': FieldValue.arrayRemove([currentUserId]),
-      });
-
-      // Update following list of current user
-      await FirebaseFirestore.instance.collection('users').doc(currentUserId).update({
-        'following': FieldValue.arrayRemove([targetUserId]),
-      });
-
-      // Update local user data
-      user['isFollowing'] = false;
-      user['followers'] = (user['followers'] as List).length - 1;
-
-      update(); // Notify GetBuilder to rebuild UI
-    } catch (e) {
-      print('Error unfollowing user: $e'); // Debug print
-      Get.snackbar('Error', 'Failed to unfollow user: $e');
+      print("Error following/unfollowing user: $e");
     }
   }
 }

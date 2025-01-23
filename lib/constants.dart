@@ -1,36 +1,37 @@
-// lib/constants.dart
+// Corrected constants.dart with Fix for UID Error
+
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:tiktok_tutorial/controllers/auth_controller.dart';
-import 'package:tiktok_tutorial/views/screens/add_video_screen.dart';
-import 'package:tiktok_tutorial/views/screens/profile_screen.dart';
-import 'package:tiktok_tutorial/views/screens/search_screen.dart';
-import 'package:tiktok_tutorial/views/screens/video_screen.dart';
-import 'package:get/get.dart';
 
-const backgroundColor = Colors.black;
-var buttonColor = Colors.red[400];
-const borderColor = Colors.grey;
+const Color primaryColor = Colors.blue;
+const Color backgroundColor = Colors.black;
+const Color buttonColor = Colors.red;
 
+// Firebase References
 final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-final FirebaseFirestore firestore = FirebaseFirestore.instance;
+final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
-final AuthController authController = Get.put(AuthController());
+// User-specific function that accepts UID as a parameter
+void displayUserDetails({required String uid}) {
+  firebaseFirestore.collection('users').doc(uid).get().then((snapshot) {
+    if (snapshot.exists) {
+      final userData = snapshot.data();
+      print('User Data: $userData');
+    } else {
+      print('No user found with UID: $uid');
+    }
+  }).catchError((error) {
+    print('Error fetching user data: $error');
+  });
+}
 
-List<Widget> pages = [
-  VideoScreen(),
-  SearchScreen(),
-  const AddVideoScreen(),
-  const Text(
-    'Messages Screen',
-    style: TextStyle(color: Colors.white),
-  ),
-  Obx(() => authController.currentUser != null
-      ? ProfileScreen(uid: authController.currentUser!.uid)
-      : const Text(
-    'Login Screen',
-    style: TextStyle(color: Colors.white),
-  )
-  ),
-];
+// Example Usage
+void exampleUsage() {
+  final currentUser = firebaseAuth.currentUser;
+  if (currentUser != null) {
+    displayUserDetails(uid: currentUser.uid);
+  } else {
+    print('No user is currently logged in');
+  }
+}
