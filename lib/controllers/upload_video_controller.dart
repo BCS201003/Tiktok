@@ -14,7 +14,6 @@ class UploadVideoController extends GetxController {
   final FirebaseService _firebaseService = Get.find<FirebaseService>();
   final AuthController _authController = Get.find<AuthController>();
 
-  // Compress the video
   Future<File> _compressVideo(String videoPath) async {
     final compressedVideo = await VideoCompress.compressVideo(
       videoPath,
@@ -26,9 +25,8 @@ class UploadVideoController extends GetxController {
     return compressedVideo.file!;
   }
 
-  // Upload file to Firebase Storage and return the download URL
   Future<String> _uploadFileToStorage(File file, String id, String type) async {
-    // type can be 'videos' or 'thumbnails'
+
     Reference ref = _firebaseService.storage
         .ref()
         .child('$type/$id/${path.basename(file.path)}');
@@ -44,14 +42,12 @@ class UploadVideoController extends GetxController {
     }
   }
 
-  // Compress and upload video to Firebase Storage
   Future<String> _processAndUploadVideo(String id, String videoPath) async {
     final compressedVideo = await _compressVideo(videoPath);
     String videoUrl = await _uploadFileToStorage(compressedVideo, id, 'videos');
     return videoUrl;
   }
 
-  // Generate thumbnail and upload to Firebase Storage
   Future<String> _processAndUploadThumbnail(String id, String videoPath) async {
     final thumbnail = await VideoCompress.getFileThumbnail(videoPath);
     File thumbnailFile = File(thumbnail.path);
@@ -59,7 +55,6 @@ class UploadVideoController extends GetxController {
     return thumbnailUrl;
   }
 
-  // Upload video metadata to Firestore
   Future<void> uploadVideo(
       String songName, String caption, String videoPath) async {
     try {
@@ -79,11 +74,9 @@ class UploadVideoController extends GetxController {
       DocumentReference videoRef = _firebaseService.firestore.collection('videos').doc();
       String videoId = videoRef.id;
 
-      // Upload video and thumbnail to Firebase Storage
       String videoUrl = await _processAndUploadVideo(videoId, videoPath);
       String thumbnailUrl = await _processAndUploadThumbnail(videoId, videoPath);
 
-      // Create Video model instance
       Video video = Video(
         username: (userDoc.data()! as Map<String, dynamic>)['name'],
         uid: uid,
@@ -98,12 +91,11 @@ class UploadVideoController extends GetxController {
         thumbnail: thumbnailUrl,
       );
 
-      // Save video metadata to Firestore
       await videoRef.set(
         video.toJson(),
       );
 
-      Get.back(); // Navigate back after successful upload
+      Get.back();
 
       Get.snackbar(
         'Success',
