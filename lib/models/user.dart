@@ -1,16 +1,18 @@
+// lib/models/user.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 class User {
   final String name;
   final String profilePhoto;
   final String email;
   final String uid;
+  final String uuid;
 
   User({
     required this.name,
     required this.email,
     required this.uid,
     required this.profilePhoto,
+    required this.uuid,
   });
 
   Map<String, dynamic> toJson() {
@@ -19,6 +21,7 @@ class User {
       "profilePhoto": profilePhoto,
       "email": email,
       "uid": uid,
+      "uuid": uuid,
     };
   }
 
@@ -29,6 +32,7 @@ class User {
       email: snapshot['email'] ?? '',
       uid: snapshot['uid'] ?? '',
       profilePhoto: snapshot['profilePhoto'] ?? '',
+      uuid: snapshot['uuid'] ?? '',
     );
   }
 
@@ -38,6 +42,7 @@ class User {
       email: map['email'] ?? '',
       uid: map['uid'] ?? '',
       profilePhoto: map['profilePhoto'] ?? '',
+      uuid: map['uuid'] ?? '',
     );
   }
 }

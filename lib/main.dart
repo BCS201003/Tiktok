@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tiktok_tutorial/controllers/auth_controller.dart';
@@ -12,10 +13,14 @@ Future<void> main() async {
   try {
     // Initialize Firebase asynchronously
     await Firebase.initializeApp();
-    print('Firebase initialized successfully');
+    if (kDebugMode) {
+      print('Firebase initialized successfully');
+    }
   } catch (e) {
     // Handle Firebase initialization errors
-    print('Firebase initialization failed: $e');
+    if (kDebugMode) {
+      print('Firebase initialization failed: $e');
+    }
   }
 
   // Run the Flutter application

@@ -28,7 +28,7 @@ class VideoScreen extends StatelessWidget {
     );
   }
 
-  // Public method to build the music album (animated) widget
+
   Widget buildMusicAlbum(String profilePhoto, double width) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -61,7 +61,7 @@ class VideoScreen extends StatelessWidget {
                 VideoPlayerItem(
                   videoUrl: data.videoUrl,
                 ),
-                // Video Details and Actions
+
                 Column(
                   children: [
                     SizedBox(height: screenSize.height * 0.1),
@@ -123,9 +123,7 @@ class VideoScreen extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                // Profile Photo
                                 buildProfile(data.profilePhoto, screenSize.width),
-                                // Like Button
                                 Column(
                                   children: [
                                     InkWell(
@@ -152,7 +150,6 @@ class VideoScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                // Comment Button
                                 Column(
                                   children: [
                                     InkWell(
@@ -175,15 +172,10 @@ class VideoScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                // Share Button
                                 Column(
                                   children: [
                                     InkWell(
-                                      onTap: () {
-                                        // Implement share functionality here
-                                        // For example, using the share_plus package
-                                        // Share.share(data.videoUrl);
-                                      },
+                                      onTap: () {},
                                       child: Icon(
                                         Icons.reply,
                                         size: screenSize.width * 0.1,
@@ -200,7 +192,6 @@ class VideoScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                // Animated Music Album
                                 CircleAnimation(
                                   child: buildMusicAlbum(
                                       data.profilePhoto, screenSize.width),

@@ -6,10 +6,10 @@ import 'package:tiktok_tutorial/views/screens/auth/signup_screen.dart';
 import 'package:tiktok_tutorial/views/widgets/text_input_field.dart';
 import 'package:tiktok_tutorial/controllers/auth_controller.dart';
 
+
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
 
-  // Instantiate AuthController using Get.find()
   final AuthController authController = Get.find<AuthController>();
 
   final TextEditingController _emailController = TextEditingController();
@@ -20,7 +20,7 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         alignment: Alignment.center,
-        child: SingleChildScrollView( // Added to prevent overflow on smaller screens
+        child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
