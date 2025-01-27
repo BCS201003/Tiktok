@@ -1,7 +1,6 @@
 // lib/controllers/my_search_controller.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/models/user.dart';
 
 class MySearchController extends GetxController {
@@ -22,6 +21,7 @@ class MySearchController extends GetxController {
       firestore
           .collection('users')
           .where('name', isGreaterThanOrEqualTo: typedUser)
+          // ignore: prefer_interpolation_to_compose_strings
           .where('name', isLessThan: typedUser + 'z') // To limit the query
           .snapshots()
           .map((QuerySnapshot query) {

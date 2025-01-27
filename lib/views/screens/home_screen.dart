@@ -1,5 +1,6 @@
 // lib/views/screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuth import
 import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/views/screens/message_screen.dart';
 import 'package:tiktok_tutorial/views/widgets/custom_icon.dart';
@@ -17,15 +18,37 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int pageIdx = 0;
+  late String _uid; // Define _uid
+  late List<Widget> pages; // Initialize after _uid
 
-  // Defined the 'pages' list
-  final List<Widget> pages = [
-    VideoScreen(), // Home
-    SearchScreen(),
-    AddVideoScreen(),
-    MessagesScreen(), // Ensure MessagesScreen is implemented
-    ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Get current user
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      _uid = currentUser.uid;
+      // Initialize pages list
+      pages = [
+        VideoScreen(), // Home
+        SearchScreen(),
+        const AddVideoScreen(),
+        const MessagesScreen(),
+        ProfileScreen(uid: _uid), // Pass the _uid here
+      ];
+    } else {
+      // Handle the case when user is not logged in
+      _uid = '';
+      pages = [
+        VideoScreen(), // Home
+        SearchScreen(),
+        const AddVideoScreen(),
+        const MessagesScreen(),
+        // Placeholder ya login screen
+        const Center(child: Text('Please log in')),
+      ];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

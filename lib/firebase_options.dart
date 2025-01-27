@@ -88,4 +88,5 @@ class DefaultFirebaseOptions {
     databaseURL: 'https://bloodarranger-default-rtdb.firebaseio.com',
     storageBucket: 'bloodarranger.appspot.com',
   );
+
 }

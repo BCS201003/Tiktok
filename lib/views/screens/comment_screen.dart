@@ -17,7 +17,7 @@ class CommentScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Comments'),
+        title: const Text('Comments'),
       ),
       body: Column(
         children: [
@@ -39,16 +39,16 @@ class CommentScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(comment['content'] ?? ''),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Row(
                           children: [
                             Text(
                               comment['timestamp'] != null
                                   ? (comment['timestamp'] as Timestamp).toDate().toString()
                                   : '',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
                             ),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             IconButton(
                               icon: Icon(
                                 comment['likes'] != null && (comment['likes'] as List).contains(commentController.auth.currentUser!.uid)
@@ -73,14 +73,14 @@ class CommentScreen extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: TextEditingController(),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Add a comment...',
                       border: OutlineInputBorder(),
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: const Icon(Icons.send),
                   onPressed: () {
                     commentController.addComment(postId, 'Your comment here');
                   },

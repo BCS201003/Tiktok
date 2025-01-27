@@ -16,7 +16,6 @@ class AddCaptionScreen extends StatelessWidget {
             height: MediaQuery.of(context).size.height,
           ),
         ]
-
       ),
     );
   }

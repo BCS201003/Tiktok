@@ -45,7 +45,6 @@ class SignupScreen extends StatelessWidget {
               ),
               Stack(
                 children: [
-                  // Display selected profile photo or default
                   Obx(() {
                     return authController.pickedImage.value != null
                         ? CircleAvatar(

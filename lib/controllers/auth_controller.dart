@@ -14,9 +14,9 @@ class AuthController extends GetxController {
   static AuthController instance = Get.find();
 
   late Rx<model.User?> _user;
-  late Rx<File?> _pickedImage;
+  late Rx<File?> pickedImage;
 
-  File? get profilePhoto => _pickedImage.value;
+  File? get profilePhoto => pickedImage.value;
   model.User? get currentUser => _user.value;
 
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -25,7 +25,7 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     _user = Rx<model.User?>(null);
-    _pickedImage = Rx<File?>(null);
+    pickedImage = Rx<File?>(null);
 
     auth.authStateChanges().listen((User? user) {
       if (user != null) {
@@ -52,15 +52,15 @@ class AuthController extends GetxController {
   }
 
   Future<void> pickImage() async {
-    final pickedImage =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedImage != null) {
+    final XFile? selectedImage =
+    await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (selectedImage != null) {
       Get.snackbar(
         'Profile Picture',
         'You have successfully selected your profile picture!',
         snackPosition: SnackPosition.BOTTOM,
       );
-      _pickedImage.value = File(pickedImage.path);
+      pickedImage.value = File(selectedImage.path);
     }
   }
 
@@ -69,7 +69,7 @@ class AuthController extends GetxController {
     final String userId = _user.value?.uid ?? 'default';
     final String fileName = path.basename(image.path);
     final String newPath =
-        path.join(directory.path, 'profilePics', userId, fileName);
+    path.join(directory.path, 'profilePics', userId, fileName);
 
     final newDir = Directory(path.dirname(newPath));
     if (!await newDir.exists()) {
@@ -128,7 +128,7 @@ class AuthController extends GetxController {
         final userData = await DatabaseHelper().getUserById(cred.user!.uid);
         if (userData != null) {
           model.User user =
-              model.User.fromMap(userData); // Use fromMap for local data
+          model.User.fromMap(userData); // Use fromMap for local data
           _user.value = user;
           _setInitialScreen(user);
         } else {

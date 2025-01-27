@@ -24,7 +24,7 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'Tiktok',
                 style: TextStyle(
                   fontSize: 35,
@@ -70,9 +70,9 @@ class LoginScreen extends StatelessWidget {
               Container(
                 width: MediaQuery.of(context).size.width * 0.9, // Adjusted for better layout
                 height: 50,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: buttonColor,
-                  borderRadius: const BorderRadius.all(
+                  borderRadius: BorderRadius.all(
                     Radius.circular(5),
                   ),
                 ),
@@ -108,7 +108,7 @@ class LoginScreen extends StatelessWidget {
                         builder: (context) => SignupScreen(),
                       ),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Register',
                       style: TextStyle(fontSize: 20, color: buttonColor),
                     ),

@@ -1,5 +1,6 @@
 // Corrected constants.dart with Fix for UID Error
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,12 +18,18 @@ void displayUserDetails({required String uid}) {
   firebaseFirestore.collection('users').doc(uid).get().then((snapshot) {
     if (snapshot.exists) {
       final userData = snapshot.data();
-      print('User Data: $userData');
+      if (kDebugMode) {
+        print('User Data: $userData');
+      }
     } else {
-      print('No user found with UID: $uid');
+      if (kDebugMode) {
+        print('No user found with UID: $uid');
+      }
     }
   }).catchError((error) {
-    print('Error fetching user data: $error');
+    if (kDebugMode) {
+      print('Error fetching user data: $error');
+    }
   });
 }
 
@@ -32,6 +39,8 @@ void exampleUsage() {
   if (currentUser != null) {
     displayUserDetails(uid: currentUser.uid);
   } else {
-    print('No user is currently logged in');
+    if (kDebugMode) {
+      print('No user is currently logged in');
+    }
   }
 }

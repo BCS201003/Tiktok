@@ -1,5 +1,6 @@
 // Corrected SearchScreen Implementation from Your Existing Project
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,11 +9,13 @@ class SearchScreen extends StatelessWidget {
   final TextEditingController _searchController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  SearchScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Search'),
+        title: const Text('Search'),
       ),
       body: Column(
         children: [
@@ -22,9 +25,9 @@ class SearchScreen extends StatelessWidget {
               controller: _searchController,
               decoration: InputDecoration(
                 labelText: 'Search by username',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  icon: Icon(Icons.search),
+                  icon: const Icon(Icons.search),
                   onPressed: () => _searchUser(_searchController.text.trim()),
                 ),
               ),
@@ -35,7 +38,7 @@ class SearchScreen extends StatelessWidget {
               stream: _firestore.collection('users').snapshots(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 final users = snapshot.data!.docs;
@@ -47,7 +50,9 @@ class SearchScreen extends StatelessWidget {
                       title: Text(user['username'] ?? 'Unknown'),
                       subtitle: Text(user['email'] ?? ''),
                       onTap: () {
-                        print('User ID: ${user['uid']}');
+                        if (kDebugMode) {
+                          print('User ID: ${user['uid']}');
+                        }
                       },
                     );
                   },
@@ -74,12 +79,16 @@ class SearchScreen extends StatelessWidget {
         .then((snapshot) {
       if (snapshot.docs.isNotEmpty) {
         final user = snapshot.docs.first.data();
-        print('User found: ${user['username']} with UID: ${user['uid']}');
+        if (kDebugMode) {
+          print('User found: ${user['username']} with UID: ${user['uid']}');
+        }
       } else {
         Get.snackbar('No Results', 'No user found with that username');
       }
     }).catchError((error) {
-      print('Error searching user: $error');
+      if (kDebugMode) {
+        print('Error searching user: $error');
+      }
       Get.snackbar('Error', 'Something went wrong while searching');
     });
   }

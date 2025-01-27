@@ -121,12 +121,18 @@ class VideoController extends GetxController {
 
         _videoList[index] = video;
         _videoList.refresh(); // Notify GetX about the update
-        print('Video liked status updated for video ID: $id');
+        if (kDebugMode) {
+          print('Video liked status updated for video ID: $id');
+        }
       } else {
-        print('Video with ID $id not found.');
+        if (kDebugMode) {
+          print('Video with ID $id not found.');
+        }
       }
     } catch (e) {
-      print('Error liking video: $e');
+      if (kDebugMode) {
+        print('Error liking video: $e');
+      }
       Get.snackbar('Error', 'Failed to like video: $e');
     }
   }

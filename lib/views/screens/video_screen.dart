@@ -1,5 +1,4 @@
 // lib/views/screens/video_screen.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/controllers/video_controller.dart';
@@ -15,7 +14,33 @@ class VideoScreen extends StatelessWidget {
   final VideoController videoController = Get.put(VideoController());
   final AuthController authController = Get.find<AuthController>();
 
-  // ... [Other methods]
+  // Public method to build the profile photo widget
+  Widget buildProfile(String profilePhoto, double width) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: CircleAvatar(
+        radius: width * 0.05, // Adjust the radius as needed
+        backgroundImage: profilePhoto.isNotEmpty
+            ? NetworkImage(profilePhoto)
+            : const AssetImage('assets/default_profile.png') as ImageProvider,
+        backgroundColor: Colors.grey[200],
+      ),
+    );
+  }
+
+  // Public method to build the music album (animated) widget
+  Widget buildMusicAlbum(String profilePhoto, double width) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: CircleAvatar(
+        radius: width * 0.05, // Adjust the radius as needed
+        backgroundImage: profilePhoto.isNotEmpty
+            ? NetworkImage(profilePhoto)
+            : const AssetImage('assets/default_music_album.png') as ImageProvider,
+        backgroundColor: Colors.grey[200],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +72,13 @@ class VideoScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Container(
-                              padding: EdgeInsets.only(left: screenSize.width * 0.05),
+                              padding:
+                              EdgeInsets.only(left: screenSize.width * 0.05),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceEvenly,
                                 children: [
                                   Text(
                                     data.username,
@@ -91,22 +118,26 @@ class VideoScreen extends StatelessWidget {
                           ),
                           Container(
                             width: screenSize.width * 0.25,
-                            margin: EdgeInsets.only(top: screenSize.height * 0.2),
+                            margin:
+                            EdgeInsets.only(top: screenSize.height * 0.2),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                // Profile Picture
+                                // Profile Photo
                                 buildProfile(data.profilePhoto, screenSize.width),
                                 // Like Button
                                 Column(
                                   children: [
                                     InkWell(
-                                      onTap: () => videoController.likeVideo(data.id),
+                                      onTap: () =>
+                                          videoController.likeVideo(data.id),
                                       child: Icon(
                                         Icons.favorite,
                                         size: screenSize.width * 0.1,
                                         color: authController.currentUser != null &&
-                                            data.likes.contains(authController.currentUser!.uid)
+                                            data.likes.contains(
+                                                authController
+                                                    .currentUser!.uid)
                                             ? Colors.red
                                             : Colors.white,
                                       ),
@@ -126,7 +157,7 @@ class VideoScreen extends StatelessWidget {
                                   children: [
                                     InkWell(
                                       onTap: () => Get.to(() => CommentScreen(
-                                        postId: data.id, // Changed 'id' to 'postId'
+                                        postId: data.id,
                                       )),
                                       child: Icon(
                                         Icons.comment,
@@ -149,7 +180,9 @@ class VideoScreen extends StatelessWidget {
                                   children: [
                                     InkWell(
                                       onTap: () {
-                                        // Share functionality yahan implement karein
+                                        // Implement share functionality here
+                                        // For example, using the share_plus package
+                                        // Share.share(data.videoUrl);
                                       },
                                       child: Icon(
                                         Icons.reply,
@@ -169,7 +202,8 @@ class VideoScreen extends StatelessWidget {
                                 ),
                                 // Animated Music Album
                                 CircleAnimation(
-                                  child: buildMusicAlbum(data.profilePhoto, screenSize.width),
+                                  child: buildMusicAlbum(
+                                      data.profilePhoto, screenSize.width),
                                 ),
                               ],
                             ),

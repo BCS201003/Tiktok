@@ -1,5 +1,6 @@
 // Updated comment_controller.dart with Fixes for Undefined Names
 
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,7 +24,9 @@ class CommentController extends GetxController {
 
       comments.value = snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
-      print('Error fetching comments: $e');
+      if (kDebugMode) {
+        print('Error fetching comments: $e');
+      }
     }
   }
 
@@ -52,7 +55,9 @@ class CommentController extends GetxController {
 
       fetchComments(videoId); // Refresh comments after adding
     } catch (e) {
-      print('Error adding comment: $e');
+      if (kDebugMode) {
+        print('Error adding comment: $e');
+      }
     }
   }
 
@@ -92,7 +97,9 @@ class CommentController extends GetxController {
         throw Exception('Comment not found');
       }
     } catch (e) {
-      print('Error toggling like: $e');
+      if (kDebugMode) {
+        print('Error toggling like: $e');
+      }
     }
   }
 }

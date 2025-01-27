@@ -11,6 +11,7 @@ class AddVideoScreen extends StatelessWidget {
   pickVideo(ImageSource src, BuildContext context) async {
     final video = await ImagePicker().pickVideo(source: src);
     if (video != null) {
+      // ignore: use_build_context_synchronously
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => ConfirmScreen(
@@ -29,8 +30,8 @@ class AddVideoScreen extends StatelessWidget {
         children: [
           SimpleDialogOption(
             onPressed: () => pickVideo(ImageSource.gallery, context),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Icon(Icons.image),
                 Padding(
                   padding: EdgeInsets.all(7.0),
@@ -44,8 +45,8 @@ class AddVideoScreen extends StatelessWidget {
           ),
           SimpleDialogOption(
             onPressed: () => pickVideo(ImageSource.camera, context),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Icon(Icons.camera_alt),
                 Padding(
                   padding: EdgeInsets.all(7.0),
@@ -59,8 +60,8 @@ class AddVideoScreen extends StatelessWidget {
           ),
           SimpleDialogOption(
             onPressed: () => Navigator.of(context).pop(),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Icon(Icons.cancel),
                 Padding(
                   padding: EdgeInsets.all(7.0),
@@ -86,7 +87,7 @@ class AddVideoScreen extends StatelessWidget {
           child: Container(
             width: 190,
             height: 50,
-            decoration: BoxDecoration(color: buttonColor),
+            decoration: const BoxDecoration(color: buttonColor),
             child: const Center(
               child: Text(
                 'Add Video',
