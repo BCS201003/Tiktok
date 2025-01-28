@@ -15,9 +15,10 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size; // Just for convenience
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      backgroundColor: Colors.yellow,
       body: Container(
         alignment: Alignment.center,
         child: SingleChildScrollView(
@@ -63,7 +64,6 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-
               // LOGIN BUTTON
               Container(
                 width: size.width * 0.9,
@@ -106,9 +106,8 @@ class LoginScreen extends StatelessWidget {
                   minimumSize: Size(size.width * 0.7, 40),
                 ),
               ),
-
               const SizedBox(height: 25),
-              // REGISTER PROMPT
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
