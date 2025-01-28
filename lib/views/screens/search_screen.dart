@@ -1,16 +1,17 @@
+//lib/view/Search_screen.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SearchScreen extends StatefulWidget {
-  SearchScreen({Key? key}) : super(key: key);
+  const SearchScreen({Key? key}) : super(key: key);
 
   @override
-  _SearchScreenState createState() => _SearchScreenState();
+  SearchScreenState createState() => SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> _users = [];

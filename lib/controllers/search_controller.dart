@@ -21,12 +21,12 @@ class MySearchController extends GetxController {
       firestore
           .collection('users')
           .where('name', isGreaterThanOrEqualTo: typedUser)
-          .where('name', isLessThan: typedUser + 'z') // To limit the query
+          .where('name', isLessThan: '${typedUser}z')
           .snapshots()
           .map((QuerySnapshot query) {
         List<User> retVal = [];
         for (var elem in query.docs) {
-          retVal.add(User.fromSnap(elem)); // Now correctly defined
+          retVal.add(User.fromSnap(elem));
         }
         return retVal;
       }),

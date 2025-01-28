@@ -24,27 +24,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Get current user
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       _uid = currentUser.uid;
-      // Initialize pages list
       pages = [
         VideoScreen(), // Home
-        SearchScreen(),
+        const SearchScreen(),
         const AddVideoScreen(),
         const MessagesScreen(),
         ProfileScreen(uid: _uid), // Pass the _uid here
       ];
     } else {
-      // Handle the case when user is not logged in
       _uid = '';
       pages = [
         VideoScreen(), // Home
-        SearchScreen(),
+        const SearchScreen(),
         const AddVideoScreen(),
         const MessagesScreen(),
-        // Placeholder ya login screen
         const Center(child: Text('Please log in')),
       ];
     }

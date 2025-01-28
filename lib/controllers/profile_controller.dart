@@ -1,5 +1,6 @@
 // lib/controllers/profile_controller.dart
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,27 +19,46 @@ class ProfileController extends GetxController {
   // Observable string for error messages
   final RxString errorMessage = ''.obs;
 
+
   /// Loads user data based on the provided UID
   Future<void> loadUserData(String uid) async {
     try {
-      isLoading.value = true;
-      errorMessage.value = '';
-      DocumentSnapshot snapshot =
-      await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot snapshot = await _firestore.collection('users').doc(uid).get();
       if (snapshot.exists) {
         _user.value = snapshot.data() as Map<String, dynamic>;
       } else {
-        _user.value = {};
-        errorMessage.value = 'User does not exist.';
+        Get.snackbar(
+          'Error',
+          'User data not found.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print("Error loading user data: $e");
-      }
-      errorMessage.value = 'Failed to load user data.';
-      _user.value = {};
-    } finally {
-      isLoading.value = false;
+      Get.snackbar(
+        'Error',
+        'Failed to fetch user data: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> updateUserData(Map<String, dynamic> updatedData) async {
+    try {
+      String uid = FirebaseAuth.instance.currentUser!.uid;
+      await _firestore.collection('users').doc(uid).update(updatedData);
+      _user.value.addAll(updatedData);
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to update user data: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -74,8 +94,6 @@ class ProfileController extends GetxController {
 
         List<dynamic> followers =
             userSnapshot.get('followers') ?? <String>[];
-        List<dynamic> following =
-            currentUserSnapshot.get('following') ?? <String>[];
 
         if (followers.contains(currentUid)) {
           // If already following, perform unfollow
@@ -103,6 +121,9 @@ class ProfileController extends GetxController {
         'Error',
         'Could not update follow status. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
     }
   }

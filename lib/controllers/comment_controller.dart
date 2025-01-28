@@ -1,4 +1,4 @@
-// Updated comment_controller.dart with Fixes for Undefined Names
+//comment_controller.dart
 
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -34,15 +34,9 @@ class CommentController extends GetxController {
   Future<void> addComment(String videoId, String content) async {
     try {
       String? uid = auth.currentUser?.uid;
-      if (uid == null) {
-        throw Exception('User is not logged in');
-      }
+      if (uid == null) throw Exception('User is not logged in');
 
       DocumentSnapshot userDoc = await firestore.collection('users').doc(uid).get();
-      if (!userDoc.exists) {
-        throw Exception('User data not found');
-      }
-
       Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
 
       await firestore.collection('videos').doc(videoId).collection('comments').add({
@@ -53,13 +47,12 @@ class CommentController extends GetxController {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      fetchComments(videoId); // Refresh comments after adding
+      fetchComments(videoId);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding comment: $e');
-      }
+      if (kDebugMode) print('Error adding comment: $e');
     }
   }
+
 
   // Like or unlike a comment
   Future<void> toggleLike(String videoId, String commentId) async {
@@ -102,4 +95,6 @@ class CommentController extends GetxController {
       }
     }
   }
+  String? uid = FirebaseAuth.instance.currentUser?.uid;
+  // Proceed with comment creation
 }

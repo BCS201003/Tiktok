@@ -10,7 +10,8 @@ import 'package:tiktok_tutorial/views/screens/auth/login_screen.dart';
 import 'package:tiktok_tutorial/views/screens/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter/material.dart'; // Added import for Colors
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthController extends GetxController {
   static AuthController instance = Get.find();
@@ -148,35 +149,32 @@ class AuthController extends GetxController {
   Future<void> registerUser(
       String username, String email, String password, File? image) async {
     try {
-      if (username.isNotEmpty &&
-          email.isNotEmpty &&
-          password.isNotEmpty &&
-          image != null) {
+      if (username.isNotEmpty && email.isNotEmpty && password.isNotEmpty && image != null) {
         UserCredential cred = await auth.createUserWithEmailAndPassword(
             email: email, password: password);
 
-        String imagePath = await _saveToLocalStorage(image);
+        String uuid = _uuid.v4(); // Generate UUID
+        String profilePhotoPath = await _saveToLocalStorage(image);
 
-        String userUUID = _uuid.v4(); // Generate UUID during registration
+        Map<String, dynamic> userData = {
+          'name': username,
+          'email': email,
+          'uid': cred.user!.uid,
+          'profilePhoto': profilePhotoPath,
+          'uuid': uuid,
+        };
 
-        model.User user = model.User(
-          name: username,
-          email: email,
-          uid: cred.user!.uid,
-          profilePhoto: imagePath,
-          uuid: userUUID, // Assign generated UUID
-        );
+        // Write data to Firestore
+        await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set(userData);
 
-        await DatabaseHelper().insertUser(user.toJson());
-
-        _user.value = user;
-        _setInitialScreen(user);
+        _user.value = model.User.fromMap(userData);
+        _setInitialScreen(_user.value);
       } else {
         Get.snackbar(
-          'Error Creating Account',
-          'Please enter all the fields.',
+          'Error',
+          'Please fill all fields.',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Colors.red,
           colorText: Colors.white,
         );
       }
@@ -185,11 +183,13 @@ class AuthController extends GetxController {
         'Error Creating Account',
         e.toString(),
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
+        backgroundColor: Colors.red,
         colorText: Colors.white,
       );
     }
   }
+
+
 
   /// Logs in an existing user and ensures a UUID is present
   Future<void> loginUser(String email, String password) async {

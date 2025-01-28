@@ -11,7 +11,6 @@ class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
 
   final AuthController authController = Get.find<AuthController>();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
