@@ -112,8 +112,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundColor: Colors.white,
                       radius: 50,
                       backgroundImage: userData.profilePhoto.isNotEmpty
-                          ? NetworkImage(userData.profilePhoto)
-                          : const AssetImage('assets/default_avatar.png'),
+                          ? Image.network(userData.profilePhoto).image
+                          : Image.asset('assets/default_avatar.png').image,
                     ),
                   ),
                 ],
