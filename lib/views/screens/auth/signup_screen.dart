@@ -9,19 +9,20 @@ import 'package:tiktok_tutorial/controllers/auth_controller.dart';
 class SignupScreen extends StatelessWidget {
   SignupScreen({Key? key}) : super(key: key);
 
-  // Instantiate AuthController using Get.find()
-  final AuthController authController = Get.find<AuthController>();
-
+  // Removed class-level AuthController retrieval
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    // Retrieve AuthController inside build
+    final AuthController authController = Get.find<AuthController>();
+
     return Scaffold(
       body: Container(
         alignment: Alignment.center,
-        child: SingleChildScrollView( // Added to prevent overflow on smaller screens
+        child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -40,16 +41,15 @@ class SignupScreen extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(
-                height: 25,
-              ),
+              const SizedBox(height: 25),
               Stack(
                 children: [
                   Obx(() {
                     return authController.pickedImage.value != null
                         ? CircleAvatar(
                       radius: 64,
-                      backgroundImage: FileImage(authController.pickedImage.value!),
+                      backgroundImage:
+                      FileImage(authController.pickedImage.value!),
                       backgroundColor: Colors.black,
                     )
                         : const CircleAvatar(
@@ -72,9 +72,7 @@ class SignupScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 15,
-              ),
+              const SizedBox(height: 15),
               Container(
                 width: MediaQuery.of(context).size.width * 0.9,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -84,9 +82,7 @@ class SignupScreen extends StatelessWidget {
                   icon: Icons.person,
                 ),
               ),
-              const SizedBox(
-                height: 15,
-              ),
+              const SizedBox(height: 15),
               Container(
                 width: MediaQuery.of(context).size.width * 0.9,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -96,9 +92,7 @@ class SignupScreen extends StatelessWidget {
                   icon: Icons.email,
                 ),
               ),
-              const SizedBox(
-                height: 15,
-              ),
+              const SizedBox(height: 15),
               Container(
                 width: MediaQuery.of(context).size.width * 0.9,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -109,13 +103,11 @@ class SignupScreen extends StatelessWidget {
                   isObscure: true,
                 ),
               ),
-              const SizedBox(
-                height: 30,
-              ),
+              const SizedBox(height: 30),
               Container(
                 width: MediaQuery.of(context).size.width * 0.9,
                 height: 50,
-                decoration:const  BoxDecoration(
+                decoration: const BoxDecoration(
                   color: buttonColor,
                   borderRadius: BorderRadius.all(
                     Radius.circular(5),
@@ -139,9 +131,7 @@ class SignupScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 15,
-              ),
+              const SizedBox(height: 15),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

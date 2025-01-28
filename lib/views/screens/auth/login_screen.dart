@@ -1,11 +1,10 @@
 // lib/views/screens/auth/login_screen.dart
 import 'package:flutter/material.dart';
-import 'package:get/get.dart'; // Import GetX
+import 'package:get/get.dart';
 import 'package:tiktok_tutorial/constants.dart';
 import 'package:tiktok_tutorial/views/screens/auth/signup_screen.dart';
 import 'package:tiktok_tutorial/views/widgets/text_input_field.dart';
 import 'package:tiktok_tutorial/controllers/auth_controller.dart';
-
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
@@ -16,6 +15,8 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size; // Just for convenience
+
     return Scaffold(
       body: Container(
         alignment: Alignment.center,
@@ -38,11 +39,10 @@ class LoginScreen extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(
-                height: 25,
-              ),
+              const SizedBox(height: 25),
+              // EMAIL TEXT FIELD
               Container(
-                width: MediaQuery.of(context).size.width * 0.9, // Adjusted for better layout
+                width: size.width * 0.9,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextInputField(
                   controller: _emailController,
@@ -50,11 +50,10 @@ class LoginScreen extends StatelessWidget {
                   icon: Icons.email,
                 ),
               ),
-              const SizedBox(
-                height: 25,
-              ),
+              const SizedBox(height: 25),
+              // PASSWORD TEXT FIELD
               Container(
-                width: MediaQuery.of(context).size.width * 0.9, // Adjusted for better layout
+                width: size.width * 0.9,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextInputField(
                   controller: _passwordController,
@@ -63,17 +62,15 @@ class LoginScreen extends StatelessWidget {
                   isObscure: true,
                 ),
               ),
-              const SizedBox(
-                height: 30,
-              ),
+              const SizedBox(height: 30),
+
+              // LOGIN BUTTON
               Container(
-                width: MediaQuery.of(context).size.width * 0.9, // Adjusted for better layout
+                width: size.width * 0.9,
                 height: 50,
                 decoration: const BoxDecoration(
                   color: buttonColor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(5),
-                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
                 ),
                 child: InkWell(
                   onTap: () => authController.loginUser(
@@ -91,15 +88,33 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 15),
+              // OR SIGN IN WITH GOOGLE
+              const Text('Or', style: TextStyle(fontSize: 18)),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: () => authController.signInWithGoogle(),
+                icon: const Icon(Icons.login),
+                label: const Text(
+                  'Sign in with Google',
+                  style: TextStyle(fontSize: 16),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  minimumSize: Size(size.width * 0.7, 40),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+              // REGISTER PROMPT
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
                     'Don\'t have an account? ',
-                    style: TextStyle(
-                      fontSize: 20,
-                    ),
+                    style: TextStyle(fontSize: 20),
                   ),
                   InkWell(
                     onTap: () => Navigator.of(context).push(

@@ -1,8 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Added Firestore import
-import 'package:uuid/uuid.dart'; // Added Uuid import
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -11,14 +8,12 @@ class DatabaseHelper {
 
   Database? _database;
 
-  /// Provides a singleton instance of the database
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
 
-  /// Initializes the SQLite database
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'app.db');
@@ -31,8 +26,7 @@ class DatabaseHelper {
     );
   }
 
-  /// Handles the creation of the SQLite database
-  Future<void> _onCreate(Database db, int version) async {
+  Future _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,19 +35,24 @@ class DatabaseHelper {
         email TEXT UNIQUE,
         password TEXT,
         profilePhoto TEXT,
-        uuid TEXT UNIQUE
+        uuid TEXT
       )
     ''');
   }
 
-  /// Handles database upgrades (e.g., adding new columns)
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  /// Handles database upgrades.
+  ///
+  /// NOTE: We remove the UNIQUE constraint from `uuid` to avoid SQLite errors.
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute('ALTER TABLE users ADD COLUMN uuid TEXT UNIQUE');
+      // Add a plain TEXT column (no UNIQUE here to avoid "Cannot add a UNIQUE column" error).
+      await db.execute('ALTER TABLE users ADD COLUMN uuid TEXT');
+      // If you truly need it unique, create a unique index afterwards:
+      // await db.execute('CREATE UNIQUE INDEX idx_users_uuid ON users (uuid)');
     }
   }
 
-  /// Inserts a new user into the SQLite database
+  /// Inserts a new user into the users table
   Future<int> insertUser(Map<String, dynamic> user) async {
     final db = await database;
     return await db.insert(
@@ -63,7 +62,7 @@ class DatabaseHelper {
     );
   }
 
-  /// Retrieves user data by UID from the SQLite database
+  /// Retrieves user data by UID from the users table
   Future<Map<String, dynamic>?> getUserById(String uid) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -77,7 +76,7 @@ class DatabaseHelper {
     return null;
   }
 
-  /// Updates specific fields of a user in the SQLite database
+  /// Updates specific fields of a user in SQLite
   Future<void> updateUser(String uid, Map<String, dynamic> updatedData) async {
     final db = await database;
     await db.update(
@@ -86,25 +85,5 @@ class DatabaseHelper {
       where: 'uid = ?',
       whereArgs: [uid],
     );
-  }
-
-  /// Adds missing UUIDs to Firestore users
-  Future<void> addMissingUUIDs() async {
-    try {
-      var snapshot = await FirebaseFirestore.instance.collection('users').get();
-      for (var doc in snapshot.docs) {
-        if (!doc.data().containsKey('uuid')) {
-          String uuid = const Uuid().v4();
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(doc.id)
-              .update({'uuid': uuid});
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error adding missing UUIDs: $e');
-      }
-    }
   }
 }
