@@ -1,19 +1,28 @@
+// lib/models/user.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class User {
+class UserModel { // Renamed to UserModel to avoid confusion with FirebaseAuth's User
   final String name;
   final String profilePhoto;
   final String email;
   final String uid;
   final String uuid;
+  final String bio; // Added bio field
+  final List<String> followers; // Added followers field
+  final List<String> following; // Added following field
 
-  User({
+  UserModel({
     required this.name,
     required this.email,
     required this.uid,
     required this.profilePhoto,
     required this.uuid,
-  });
+    this.bio = '',
+    List<String>? followers,
+    List<String>? following,
+  })  : followers = followers ?? [],
+        following = following ?? [];
 
   Map<String, dynamic> toJson() {
     return {
@@ -22,27 +31,36 @@ class User {
       "email": email,
       "uid": uid,
       "uuid": uuid,
+      "bio": bio,
+      "followers": followers,
+      "following": following,
     };
   }
 
-  factory User.fromSnap(DocumentSnapshot snap) {
+  factory UserModel.fromSnap(DocumentSnapshot snap) {
     final Map<String, dynamic> snapshot = snap.data() as Map<String, dynamic>;
-    return User(
+    return UserModel(
       name: snapshot['name'] ?? '',
       email: snapshot['email'] ?? '',
       uid: snapshot['uid'] ?? '',
       profilePhoto: snapshot['profilePhoto'] ?? '',
       uuid: snapshot['uuid'] ?? '',
+      bio: snapshot['bio'] ?? '',
+      followers: List<String>.from(snapshot['followers'] ?? []),
+      following: List<String>.from(snapshot['following'] ?? []),
     );
   }
 
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
       name: map['name'] ?? '',
       email: map['email'] ?? '',
       uid: map['uid'] ?? '',
       profilePhoto: map['profilePhoto'] ?? '',
       uuid: map['uuid'] ?? '',
+      bio: map['bio'] ?? '',
+      followers: List<String>.from(map['followers'] ?? []),
+      following: List<String>.from(map['following'] ?? []),
     );
   }
 }

@@ -1,3 +1,5 @@
+// lib/controllers/auth_controller.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,40 +22,43 @@ class AuthController extends GetxController {
   final FirebaseService _firebaseService = Get.find<FirebaseService>();
   final Uuid _uuid = const Uuid();
 
-  late Rx<model.User?> _user;
+  late Rx<model.UserModel?> _user;
   late Rx<File?> pickedImage;
 
-  // Keep track of the user in local DB form
-  model.User? get currentUser => _user.value;
+  // Getter for current user
+  model.UserModel? get currentUser => _user.value;
+  // Getter for profile photo
   File? get profilePhoto => pickedImage.value;
 
   @override
   void onInit() {
     super.onInit();
-    _user = Rx<model.User?>(null);
+    _user = Rx<model.UserModel?>(null);
     pickedImage = Rx<File?>(null);
 
-    // Listen for auth state changes
+    // Listen for authentication state changes
     auth.authStateChanges().listen((User? firebaseUser) async {
       if (firebaseUser != null) {
-        // 1) Fetch from local SQLite
+        // Check local SQLite for user data
         final userData = await DatabaseHelper().getUserById(firebaseUser.uid);
         if (userData != null) {
-          // Found user in local DB
-          _user.value = model.User.fromMap(userData);
-          _setInitialScreen(_user.value);
+          // User exists locally
+          _user.value = model.UserModel.fromMap(userData);
+          _navigateToInitialScreen(_user.value);
         } else {
-          // Not found in local DB => create local DB entry
+          // User not found locally, create user document
           await _createUserDocument(firebaseUser);
         }
       } else {
+        // No user is signed in
         _user.value = null;
-        _setInitialScreen(null);
+        _navigateToInitialScreen(null);
       }
     });
   }
 
-  void _setInitialScreen(model.User? user) {
+  /// Navigates to the appropriate screen based on user authentication
+  void _navigateToInitialScreen(model.UserModel? user) {
     if (user == null) {
       Get.offAll(() => LoginScreen());
     } else {
@@ -104,7 +109,7 @@ class AuthController extends GetxController {
     return savedImage.path;
   }
 
-  /// Creates a user *locally* and also in Firestore (if missing)
+  /// Creates a user entry locally and in Firestore if missing
   Future<void> _createUserDocument(User firebaseUser) async {
     try {
       String imagePath = '';
@@ -114,22 +119,19 @@ class AuthController extends GetxController {
 
       String userUUID = _uuid.v4();
 
-      model.User newUser = model.User(
-        name: '', // Prompt user to set name later or handle accordingly
+      model.UserModel newUser = model.UserModel(
+        name: '', // Handle user name setting later
         email: firebaseUser.email ?? '',
         uid: firebaseUser.uid,
         profilePhoto: imagePath,
         uuid: userUUID,
       );
 
-      // Store in local SQLite
+      // Insert user into local SQLite
       await DatabaseHelper().insertUser(newUser.toJson());
 
-      // Also store in Firestore to avoid permission or data-missing issues
-      await _firebaseService.firestore
-          .collection('users')
-          .doc(newUser.uid)
-          .set({
+      // Insert user into Firestore
+      await _firebaseService.firestore.collection('users').doc(newUser.uid).set({
         'uid': newUser.uid,
         'email': newUser.email,
         'name': newUser.name,
@@ -140,7 +142,7 @@ class AuthController extends GetxController {
       });
 
       _user.value = newUser;
-      _setInitialScreen(newUser);
+      _navigateToInitialScreen(newUser);
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -171,7 +173,7 @@ class AuthController extends GetxController {
         // Generate a UUID
         String userUUID = _uuid.v4();
 
-        model.User user = model.User(
+        model.UserModel user = model.UserModel(
           name: username,
           email: email,
           uid: cred.user!.uid,
@@ -179,14 +181,11 @@ class AuthController extends GetxController {
           uuid: userUUID,
         );
 
-        // 1) Store user in local SQLite
+        // Insert user into local SQLite
         await DatabaseHelper().insertUser(user.toJson());
 
-        // 2) Also store user in Firestore
-        await _firebaseService.firestore
-            .collection('users')
-            .doc(user.uid)
-            .set({
+        // Insert user into Firestore
+        await _firebaseService.firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
           'email': user.email,
           'name': user.name,
@@ -197,7 +196,7 @@ class AuthController extends GetxController {
         });
 
         _user.value = user;
-        _setInitialScreen(user);
+        _navigateToInitialScreen(user);
       } else {
         Get.snackbar(
           'Error Creating Account',
@@ -227,17 +226,17 @@ class AuthController extends GetxController {
           password: password,
         );
 
-        // 1) Check local DB
+        // Check local SQLite for user data
         final userData = await DatabaseHelper().getUserById(cred.user!.uid);
         if (userData != null) {
-          // Found in local DB
-          model.User user = model.User.fromMap(userData);
+          model.UserModel user = model.UserModel.fromMap(userData);
 
-          // Check if user.uuid is empty; if so, generate and update in local DB
+          // Generate UUID if missing
           if (user.uuid.isEmpty) {
             String newUUID = _uuid.v4();
-            await DatabaseHelper().updateUser(cred.user!.uid, {'uuid': newUUID});
-            user = model.User(
+            await DatabaseHelper()
+                .updateUser(cred.user!.uid, {'uuid': newUUID});
+            user = model.UserModel(
               name: user.name,
               email: user.email,
               uid: user.uid,
@@ -253,7 +252,7 @@ class AuthController extends GetxController {
             );
           }
 
-          // 2) Check if Firestore doc exists; if not, create one
+          // Check Firestore for user document
           final docSnap = await _firebaseService.firestore
               .collection('users')
               .doc(user.uid)
@@ -274,9 +273,9 @@ class AuthController extends GetxController {
           }
 
           _user.value = user;
-          _setInitialScreen(user);
+          _navigateToInitialScreen(user);
         } else {
-          // Not in local DB => create user doc in local DB and Firestore
+          // User not found locally, create user document
           _createUserDocument(cred.user!);
         }
       } else {
@@ -303,7 +302,8 @@ class AuthController extends GetxController {
   Future<String?> getCurrentUserUUID() async {
     User? user = auth.currentUser;
     if (user != null) {
-      Map<String, dynamic>? userData = await DatabaseHelper().getUserById(user.uid);
+      Map<String, dynamic>? userData =
+      await DatabaseHelper().getUserById(user.uid);
       return userData?['uuid'];
     }
     return null;
@@ -314,7 +314,7 @@ class AuthController extends GetxController {
     try {
       await auth.signOut();
       _user.value = null;
-      _setInitialScreen(null);
+      _navigateToInitialScreen(null);
     } catch (e) {
       Get.snackbar(
         'Error Signing Out',
@@ -325,41 +325,44 @@ class AuthController extends GetxController {
       );
     }
   }
+
+  /// Signs in the user using Google Sign-In
   Future<void> signInWithGoogle() async {
     try {
-      // 1) Trigger the Google Authentication flow
+      // Initiate Google Sign-In flow
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         // User canceled the sign-in
         return;
       }
 
-      // 2) Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      // Obtain authentication details from Google
+      final GoogleSignInAuthentication googleAuth =
+      await googleUser.authentication;
 
-      // 3) Create a new credential for Firebase
+      // Create a new credential for Firebase
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // 4) Sign in to Firebase with this credential
+      // Sign in to Firebase with the Google credential
       UserCredential userCredential =
       await auth.signInWithCredential(credential);
 
-      // 5) Check if user record already exists in Firestore & local DB
-      final userInDB = await DatabaseHelper().getUserById(userCredential.user!.uid);
+      // Check if user exists in local SQLite
+      final userInDB =
+      await DatabaseHelper().getUserById(userCredential.user!.uid);
       if (userInDB == null) {
-        // Not in local DB => create doc with name, email, etc.
-        // The user’s displayName and photoURL come from Google if available
+        // User not found locally, create user document
         final displayName = userCredential.user?.displayName ?? 'Unknown';
         final email = userCredential.user?.email ?? '';
         final uid = userCredential.user!.uid;
         final profilePic = userCredential.user?.photoURL ?? '';
         final userUUID = _uuid.v4();
 
-        // Create local DB user
-        final model.User newUser = model.User(
+        // Create local user
+        final model.UserModel newUser = model.UserModel(
           name: displayName,
           email: email,
           uid: uid,
@@ -368,7 +371,7 @@ class AuthController extends GetxController {
         );
         await DatabaseHelper().insertUser(newUser.toJson());
 
-        // Create Firestore doc
+        // Create Firestore user document
         await _firebaseService.firestore.collection('users').doc(uid).set({
           'uid': uid,
           'email': email,
@@ -381,13 +384,13 @@ class AuthController extends GetxController {
 
         _user.value = newUser;
       } else {
-        // Already in local DB => convert, set _user
-        final existingUser = model.User.fromMap(userInDB);
+        // User exists locally, set as current user
+        final existingUser = model.UserModel.fromMap(userInDB);
         _user.value = existingUser;
       }
 
-      // Navigate to home screen
-      _setInitialScreen(_user.value);
+      // Navigate to Home Screen
+      _navigateToInitialScreen(_user.value);
     } catch (e) {
       Get.snackbar(
         'Error',

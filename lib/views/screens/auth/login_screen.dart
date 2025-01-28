@@ -1,4 +1,6 @@
 // lib/views/screens/auth/login_screen.dart
+// lib/views/screens/auth/login_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tiktok_tutorial/constants.dart';
@@ -25,6 +27,7 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // App Title
               const Text(
                 'Tiktok',
                 style: TextStyle(
@@ -33,6 +36,7 @@ class LoginScreen extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               ),
+              // Login Subtitle
               const Text(
                 'Login',
                 style: TextStyle(
@@ -41,7 +45,8 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 25),
-              // EMAIL TEXT FIELD
+
+              // Email Input Field
               Container(
                 width: size.width * 0.9,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -52,7 +57,8 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 25),
-              // PASSWORD TEXT FIELD
+
+              // Password Input Field
               Container(
                 width: size.width * 0.9,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -64,7 +70,8 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              // LOGIN BUTTON
+
+              // Login Button
               Container(
                 width: size.width * 0.9,
                 height: 50,
@@ -88,11 +95,13 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 15),
-              // OR SIGN IN WITH GOOGLE
+
+              // Divider Text
               const Text('Or', style: TextStyle(fontSize: 18)),
               const SizedBox(height: 10),
+
+              // Google Sign-In Button
               ElevatedButton.icon(
                 onPressed: () => authController.signInWithGoogle(),
                 icon: const Icon(Icons.login),
@@ -108,6 +117,7 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 25),
 
+              // Registration Prompt
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

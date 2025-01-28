@@ -1,29 +1,17 @@
 // lib/main.dart
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:tiktok_tutorial/controllers/auth_controller.dart';
-import 'package:tiktok_tutorial/services/firebase_service.dart';
-import 'package:tiktok_tutorial/views/screens/auth/signup_screen.dart';
-import 'package:tiktok_tutorial/views/screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:tiktok_tutorial/firebase_options.dart'; // Ensure this import is present
+import 'package:tiktok_tutorial/services/firebase_service.dart';
+import 'package:tiktok_tutorial/views/screens/auth/login_screen.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    if (kDebugMode) {
-      print('Firebase initialized successfully');
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('Firebase initialization failed: $e');
-    }
-  }
+  // Initialize FirebaseService and make it available globally
+  Get.put<FirebaseService>(FirebaseService());
 
   runApp(const MyApp());
 }
@@ -31,19 +19,17 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // Define initial bindings
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      title: 'TikTok Clone',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.black,
+      ),
+      home: LoginScreen(),
       debugShowCheckedModeBanner: false,
-      initialBinding: BindingsBuilder(() {
-        // Register FirebaseService first
-        Get.put<FirebaseService>(FirebaseService());
-
-        // Then register AuthController
-        Get.put<AuthController>(AuthController());
-      }),
-      home: SignupScreen(),
     );
   }
 }

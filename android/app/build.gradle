@@ -1,8 +1,10 @@
+// android/app/build.gradle
+
 plugins {
     id "com.android.application"
-    id 'com.google.gms.google-services'
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id 'com.google.gms.google-services' // Moved to the end
 }
 
 android {
@@ -16,12 +18,11 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = "1.8" // Changed to string format
     }
 
     defaultConfig {
         applicationId = "com.example.untitled17"
-        //minSdk = flutter.minSdkVersion
         minSdkVersion 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -31,10 +32,17 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.debug
+            // You might want to configure release signing separately
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+// If you have any dependencies, ensure they are correctly listed
+dependencies {
+    // Example:
+    // implementation 'com.google.firebase:firebase-analytics:21.0.0'
 }

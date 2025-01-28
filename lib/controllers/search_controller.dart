@@ -7,8 +7,8 @@ class MySearchController extends GetxController {
   // FirebaseFirestore instance
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  final Rx<List<User>> _searchedUsers = Rx<List<User>>([]);
-  List<User> get searchedUsers => _searchedUsers.value;
+  final Rx<List<UserModel>> _searchedUsers = Rx<List<UserModel>>([]);
+  List<UserModel> get searchedUsers => _searchedUsers.value;
 
   // Search users by name
   void searchUser(String typedUser) {
@@ -24,9 +24,9 @@ class MySearchController extends GetxController {
           .where('name', isLessThan: '${typedUser}z')
           .snapshots()
           .map((QuerySnapshot query) {
-        List<User> retVal = [];
+        List<UserModel> retVal = [];
         for (var elem in query.docs) {
-          retVal.add(User.fromSnap(elem));
+          retVal.add(UserModel.fromSnap(elem));
         }
         return retVal;
       }),

@@ -1,8 +1,9 @@
-// lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tiktok_tutorial/controllers/profile_controller.dart';
+import 'package:tiktok_tutorial/views/screens/edit_profile_screen.dart';
+import 'package:tiktok_tutorial/views/widgets/video_thumbnail.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid; // UID of the user to display
@@ -20,22 +21,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize the ProfileController using GetX
     _controller = Get.put(ProfileController());
     currentUid = FirebaseAuth.instance.currentUser!.uid;
+    // Load user data based on the provided UID
     _controller.loadUserData(widget.uid);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Use a dark theme to mimic TikTok's aesthetic
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Profile'),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          'Profile',
+          style: TextStyle(color: Colors.white),
+        ),
+        actions: [
+          // Show Edit Profile button only if it's the current user's profile
+          if (widget.uid == currentUid)
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () => Get.to(() => const EditProfileScreen()),
+            ),
+        ],
       ),
       body: Obx(() {
-        // Display loading indicator
+        // Display loading indicator while fetching data
         if (_controller.isLoading.value) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(color: Colors.white),
           );
         }
 
@@ -50,74 +68,186 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         // Display message if no user data is available
-        if (_controller.user.isEmpty) {
+        if (_controller.user == null) {
           return const Center(
-            child: Text('No user data available'),
+            child: Text(
+              'No user data available',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
           );
         }
 
-        // Determine if the current user is following the target user
-        bool isFollowing =
-        (_controller.user['followers'] ?? []).contains(currentUid);
+        // Extract user data
+        final userData = _controller.user!;
+        final isCurrentUser = widget.uid == currentUid;
+        final isFollowing = _controller.isFollowing(widget.uid);
 
         return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Profile Picture
-                _controller.user['profilePictureUrl'] != null &&
-                    _controller.user['profilePictureUrl'].isNotEmpty
-                    ? CircleAvatar(
-                  backgroundImage:
-                  NetworkImage(_controller.user['profilePictureUrl']),
-                  radius: 50,
-                )
-                    : const CircleAvatar(
-                  radius: 50,
-                  child: Icon(Icons.person, size: 50),
-                ),
-                const SizedBox(height: 20),
-
-                // User Name
-                Text(
-                  _controller.user['name'] ?? 'Unknown',
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-
-                // User Email
-                Text(
-                  _controller.user['email'] ?? 'Unknown',
-                  style: const TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Follow/Unfollow Button
-                ElevatedButton(
-                  onPressed: () => _controller.followUser(widget.uid),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isFollowing ? Colors.red : Colors.blue,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 12),
+          child: Column(
+            children: [
+              // Profile Header Section
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Cover Image or Default Color
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    color: Colors.grey[900],
+                    child: userData.profilePhoto.isNotEmpty
+                        ? Image.network(
+                      userData.profilePhoto,
+                      fit: BoxFit.cover,
+                    )
+                        : const Icon(
+                      Icons.image,
+                      color: Colors.white54,
+                      size: 100,
+                    ),
                   ),
-                  child: Text(
-                    isFollowing ? 'Unfollow' : 'Follow',
-                    style: const TextStyle(fontSize: 16),
+                  // Profile Picture
+                  Positioned(
+                    bottom: -50,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      radius: 50,
+                      backgroundImage: userData.profilePhoto.isNotEmpty
+                          ? NetworkImage(userData.profilePhoto)
+                          : const AssetImage('assets/default_avatar.png'),
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 60), // Space for profile picture
+
+              // User Information Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: [
+                    // User Name
+                    Text(
+                      userData.name,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // User Bio
+                    Text(
+                      userData.bio.isNotEmpty ? userData.bio : 'No bio available.',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white70,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Followers, Following, and Likes Count
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        buildStatColumn(
+                          count: _controller.getFollowers().length,
+                          label: 'Followers',
+                        ),
+                        buildStatColumn(
+                          count: _controller.getFollowing().length,
+                          label: 'Following',
+                        ),
+                        buildStatColumn(
+                          count: 0, // Placeholder for Likes
+                          label: 'Likes',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Follow/Unfollow Button for Other Users
+                    if (!isCurrentUser)
+                      ElevatedButton(
+                        onPressed: () => _controller.followUser(widget.uid),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isFollowing ? Colors.red : Colors.blue,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          isFollowing ? 'Unfollow' : 'Follow',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+
+                    // User's Videos Section
+                    _controller.userVideos.isEmpty
+                        ? const Text(
+                      'No videos posted yet.',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
+                    )
+                        : GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 4,
+                        crossAxisSpacing: 4,
+                        childAspectRatio: 1,
+                      ),
+                      itemCount: _controller.userVideos.length,
+                      itemBuilder: (context, index) {
+                        final video = _controller.userVideos[index];
+                        return VideoThumbnail(
+                          videoUrl: video['videoUrl'] ?? '',
+                        );
+                      },
+                    ),
+                  ],
                 ),
-
-                const SizedBox(height: 30),
-
-                // Additional Profile Information (Optional)
-                // You can add more widgets here to display more user info
-                // For example: Number of followers, following, posts, etc.
-              ],
-            ),
+              ),
+            ],
           ),
         );
       }),
+    );
+  }
+
+  /// Builds a column widget for user statistics
+  Widget buildStatColumn({required int count, required String label}) {
+    return Column(
+      children: [
+        Text(
+          count.toString(),
+          style: const TextStyle(
+            fontSize: 20,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.white70,
+          ),
+        ),
+      ],
     );
   }
 }
