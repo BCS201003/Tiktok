@@ -4,18 +4,21 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
+  // Singleton instance
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
   DatabaseHelper._internal();
 
   static Database? _database;
 
+  // Getter to access the database
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
 
+  // Initialize the database
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'app.db');
@@ -25,10 +28,15 @@ class DatabaseHelper {
       version: 2, // Ensure this matches the latest schema version
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
+      onOpen: (db) {
+        print('Database opened at path: $path');
+      },
     );
   }
 
+  // Create the users table
   Future _onCreate(Database db, int version) async {
+    print('Creating database with version $version');
     await db.execute('''
       CREATE TABLE users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,26 +51,30 @@ class DatabaseHelper {
         following TEXT
       )
     ''');
+    print('Users table created successfully.');
   }
 
-  /// Handles database upgrades.
-  ///
-  /// Ensures that new columns are added only when upgrading from a version below 2.
+  // Handle database upgrades
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    print('Upgrading database from version $oldVersion to $newVersion');
     if (oldVersion < 2) {
       // Add 'uuid' column
       await db.execute('ALTER TABLE users ADD COLUMN uuid TEXT');
+      print('Added uuid column.');
 
       // Add 'bio' column
       await db.execute('ALTER TABLE users ADD COLUMN bio TEXT');
+      print('Added bio column.');
 
       // Add 'followers' column
       await db.execute('ALTER TABLE users ADD COLUMN followers TEXT');
+      print('Added followers column.');
 
       // Add 'following' column
       await db.execute('ALTER TABLE users ADD COLUMN following TEXT');
+      print('Added following column.');
     }
-    // Handle future migrations here
+    print('Database upgrade completed.');
   }
 
   /// Inserts a new user into the users table
@@ -94,8 +106,10 @@ class DatabaseHelper {
       whereArgs: [uid],
     );
     if (maps.isNotEmpty) {
+      print('User found: ${maps.first}');
       return maps.first;
     }
+    print('No user found with uid: $uid');
     return null;
   }
 
@@ -108,5 +122,6 @@ class DatabaseHelper {
       where: 'uid = ?',
       whereArgs: [uid],
     );
+    print('User with uid $uid updated with data: $updatedData');
   }
 }

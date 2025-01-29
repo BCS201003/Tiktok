@@ -15,7 +15,6 @@ class SignupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
 
     // Retrieve AuthController instance
     final AuthController authController = Get.find<AuthController>();

@@ -10,10 +10,10 @@ class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
 
   @override
-  _EditProfileScreenState createState() => _EditProfileScreenState();
+  EditProfileScreenState createState() => EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class EditProfileScreenState extends State<EditProfileScreen> {
   final ProfileController _profileController = Get.find<ProfileController>();
 
   final TextEditingController _nameController = TextEditingController();
@@ -64,12 +64,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ? NetworkImage(_profileController.user!.profilePhoto)
                         : const AssetImage('assets/default_avatar.png'))
                     as ImageProvider,
-                    child: Align(
+                    child: const Align(
                       alignment: Alignment.bottomRight,
                       child: CircleAvatar(
                         backgroundColor: Colors.white,
                         radius: 20,
-                        child: const Icon(
+                        child: Icon(
                           Icons.edit,
                           color: Colors.black,
                         ),

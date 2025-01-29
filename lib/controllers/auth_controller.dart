@@ -26,17 +26,13 @@ class AuthController extends GetxController {
   late Rx<model.UserModel?> _user;
   late Rx<File?> pickedImage;
 
-  // Reactive variable for loading state
   var isLoading = false.obs;
 
-  // TextEditingController Instances
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
 
-  // Getter for current user
   model.UserModel? get currentUser => _user.value;
-  // Getter for profile photo
   File? get profilePhoto => pickedImage.value;
 
   @override
@@ -45,21 +41,18 @@ class AuthController extends GetxController {
     _user = Rx<model.UserModel?>(null);
     pickedImage = Rx<File?>(null);
 
-    // Listen for authentication state changes
     auth.authStateChanges().listen((User? firebaseUser) async {
       if (firebaseUser != null) {
-        // Check local SQLite for user data
+        print('Auth state changed: User is signed in.');
         final userData = await DatabaseHelper().getUserById(firebaseUser.uid);
         if (userData != null) {
-          // User exists locally
           _user.value = model.UserModel.fromMap(userData);
           _navigateToInitialScreen(_user.value);
         } else {
-          // User not found locally, create user document
           await _createUserDocument(firebaseUser);
         }
       } else {
-        // No user is signed in
+        print('Auth state changed: No user is signed in.');
         _user.value = null;
         _navigateToInitialScreen(null);
       }
@@ -69,13 +62,11 @@ class AuthController extends GetxController {
   @override
   void onClose() {
     super.onClose();
-    // Dispose controllers to free up resources
     emailController.dispose();
     passwordController.dispose();
     usernameController.dispose();
   }
 
-  /// Navigates to the appropriate screen based on user authentication
   void _navigateToInitialScreen(model.UserModel? user) {
     if (user == null) {
       Get.offAll(() => LoginScreen());
@@ -84,7 +75,6 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Allows the user to pick an image from the gallery
   Future<void> pickImage() async {
     try {
       final XFile? selectedImage =
@@ -98,6 +88,9 @@ class AuthController extends GetxController {
           colorText: Colors.white,
         );
         pickedImage.value = File(selectedImage.path);
+        print('Image picked: ${selectedImage.path}');
+      } else {
+        print('No image selected.');
       }
     } catch (e) {
       Get.snackbar(
@@ -107,10 +100,10 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+      print('Error picking image: $e');
     }
   }
 
-  /// Saves the picked image to local storage and returns the new path
   Future<String> _saveToLocalStorage(File image) async {
     final directory = await getApplicationDocumentsDirectory();
     final String userId = _user.value?.uid ?? 'default';
@@ -121,13 +114,14 @@ class AuthController extends GetxController {
     final newDir = Directory(path.dirname(newPath));
     if (!await newDir.exists()) {
       await newDir.create(recursive: true);
+      print('Created directory: ${newDir.path}');
     }
 
     final savedImage = await image.copy(newPath);
+    print('Image saved to: ${savedImage.path}');
     return savedImage.path;
   }
 
-  /// Creates a user entry locally and in Firestore if missing
   Future<void> _createUserDocument(User firebaseUser) async {
     try {
       String imagePath = '';
@@ -148,15 +142,13 @@ class AuthController extends GetxController {
         following: [], // Initialize following as empty list
       );
 
-      // Serialize followers and following
       Map<String, dynamic> userMap = newUser.toJson();
       userMap['followers'] = jsonEncode(newUser.followers);
       userMap['following'] = jsonEncode(newUser.following);
 
-      // Insert user into local SQLite
       await DatabaseHelper().insertUser(userMap);
+      print('Inserted user into SQLite: $userMap');
 
-      // Insert user into Firestore
       await _firebaseService.firestore.collection('users').doc(newUser.uid).set({
         'uid': newUser.uid,
         'email': newUser.email,
@@ -167,6 +159,7 @@ class AuthController extends GetxController {
         'followers': newUser.followers,
         'following': newUser.following,
       });
+      print('Inserted user into Firestore: ${newUser.uid}');
 
       _user.value = newUser;
       _navigateToInitialScreen(newUser);
@@ -178,10 +171,10 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+      print('Error creating user document: $e');
     }
   }
 
-  /// Registers a new user with email, password, username, and profile image
   Future<void> registerUser(
       String username, String email, String password, File? image) async {
     try {
@@ -189,17 +182,14 @@ class AuthController extends GetxController {
           email.isNotEmpty &&
           password.isNotEmpty &&
           image != null) {
-        isLoading.value = true; // Start loading
+        isLoading.value = true;
 
         UserCredential cred = await auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
 
-        // Save image locally
         String imagePath = await _saveToLocalStorage(image);
-
-        // Generate a UUID
         String userUUID = _uuid.v4();
 
         model.UserModel user = model.UserModel(
@@ -208,20 +198,18 @@ class AuthController extends GetxController {
           uid: cred.user!.uid,
           profilePhoto: imagePath,
           uuid: userUUID,
-          bio: '', // Initialize bio as empty string
-          followers: [], // Initialize followers as empty list
-          following: [], // Initialize following as empty list
+          bio: '',
+          followers: [],
+          following: [],
         );
 
-        // Serialize followers and following
         Map<String, dynamic> userMap = user.toJson();
         userMap['followers'] = jsonEncode(user.followers);
         userMap['following'] = jsonEncode(user.following);
 
-        // Insert user into local SQLite
         await DatabaseHelper().insertUser(userMap);
+        print('Registered user inserted into SQLite: $userMap');
 
-        // Insert user into Firestore
         await _firebaseService.firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
           'email': user.email,
@@ -232,6 +220,7 @@ class AuthController extends GetxController {
           'followers': user.followers,
           'following': user.following,
         });
+        print('Registered user inserted into Firestore: ${user.uid}');
 
         _user.value = user;
         _navigateToInitialScreen(user);
@@ -243,6 +232,7 @@ class AuthController extends GetxController {
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
         );
+        print('Registration failed: Incomplete fields.');
       }
     } catch (e) {
       Get.snackbar(
@@ -252,28 +242,27 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+      print('Error registering user: $e');
     } finally {
-      isLoading.value = false; // Stop loading
+      isLoading.value = false;
     }
   }
 
-  /// Logs in an existing user and ensures a UUID is present
   Future<void> loginUser(String email, String password) async {
     try {
       if (email.isNotEmpty && password.isNotEmpty) {
-        isLoading.value = true; // Start loading
+        isLoading.value = true;
 
         UserCredential cred = await auth.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
 
-        // Check local SQLite for user data
         final userData = await DatabaseHelper().getUserById(cred.user!.uid);
         if (userData != null) {
           model.UserModel user = model.UserModel.fromMap(userData);
+          print('User data retrieved from SQLite: $userData');
 
-          // Generate UUID if missing
           if (user.uuid.isEmpty) {
             String newUUID = _uuid.v4();
             await DatabaseHelper()
@@ -295,9 +284,9 @@ class AuthController extends GetxController {
               backgroundColor: Colors.green,
               colorText: Colors.white,
             );
+            print('UUID generated and updated: $newUUID');
           }
 
-          // Check Firestore for user document
           final docSnap = await _firebaseService.firestore
               .collection('users')
               .doc(user.uid)
@@ -313,12 +302,13 @@ class AuthController extends GetxController {
               'followers': user.followers,
               'following': user.following,
             });
+            print('User document created in Firestore: ${user.uid}');
           }
 
           _user.value = user;
           _navigateToInitialScreen(user);
         } else {
-          // User not found locally, create user document
+          print('User not found in SQLite. Creating user document.');
           await _createUserDocument(cred.user!);
         }
       } else {
@@ -329,6 +319,7 @@ class AuthController extends GetxController {
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
         );
+        print('Login failed: Incomplete fields.');
       }
     } catch (e) {
       Get.snackbar(
@@ -338,29 +329,31 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+      print('Error logging in user: $e');
     } finally {
-      isLoading.value = false; // Stop loading
+      isLoading.value = false;
     }
   }
 
-  /// Retrieves the UUID of the currently authenticated user
   Future<String?> getCurrentUserUUID() async {
     User? user = auth.currentUser;
     if (user != null) {
       Map<String, dynamic>? userData =
       await DatabaseHelper().getUserById(user.uid);
+      print('Retrieved UUID: ${userData?['uuid']}');
       return userData?['uuid'];
     }
+    print('No user is currently signed in.');
     return null;
   }
 
-  /// Signs out the current user
   Future<void> signOut() async {
     try {
-      isLoading.value = true; // Start loading
+      isLoading.value = true;
       await auth.signOut();
       _user.value = null;
       _navigateToInitialScreen(null);
+      print('User signed out successfully.');
     } catch (e) {
       Get.snackbar(
         'Error Signing Out',
@@ -369,69 +362,61 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+      print('Error signing out user: $e');
     } finally {
-      isLoading.value = false; // Stop loading
+      isLoading.value = false;
     }
   }
 
-  /// Signs in the user using Google Sign-In
   Future<void> signInWithGoogle() async {
     try {
-      isLoading.value = true; // Start loading
+      isLoading.value = true;
 
-      // Initiate Google Sign-In flow
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
-        // User canceled the sign-in
         isLoading.value = false;
+        print('Google sign-in aborted by user.');
         return;
       }
 
-      // Obtain authentication details from Google
       final GoogleSignInAuthentication googleAuth =
       await googleUser.authentication;
 
-      // Create a new credential for Firebase
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Sign in to Firebase with the Google credential
       UserCredential userCredential =
       await auth.signInWithCredential(credential);
 
-      // Check if user exists in local SQLite
       final userInDB =
       await DatabaseHelper().getUserById(userCredential.user!.uid);
       if (userInDB == null) {
-        // User not found locally, create user document
         final displayName = userCredential.user?.displayName ?? 'Unknown';
         final email = userCredential.user?.email ?? '';
         final uid = userCredential.user!.uid;
         final profilePic = userCredential.user?.photoURL ?? '';
         final userUUID = _uuid.v4();
 
-        // Create local user
         final model.UserModel newUser = model.UserModel(
           name: displayName,
           email: email,
           uid: uid,
           profilePhoto: profilePic,
           uuid: userUUID,
-          bio: '', // Initialize bio as empty string
-          followers: [], // Initialize followers as empty list
-          following: [], // Initialize following as empty list
+          bio: '',
+          followers: [],
+          following: [],
         );
 
-        // Serialize followers and following
         Map<String, dynamic> userMap = newUser.toJson();
         userMap['followers'] = jsonEncode(newUser.followers);
         userMap['following'] = jsonEncode(newUser.following);
 
         await DatabaseHelper().insertUser(userMap);
+        print('Google user inserted into SQLite: $userMap');
 
-        // Create Firestore user document
         await _firebaseService.firestore.collection('users').doc(uid).set({
           'uid': uid,
           'email': email,
@@ -442,15 +427,15 @@ class AuthController extends GetxController {
           'followers': newUser.followers,
           'following': newUser.following,
         });
+        print('Google user inserted into Firestore: $uid');
 
         _user.value = newUser;
       } else {
-        // User exists locally, deserialize followers and following
         final existingUser = model.UserModel.fromMap(userInDB);
         _user.value = existingUser;
+        print('Google user retrieved from SQLite: $existingUser');
       }
 
-      // Navigate to Home Screen
       _navigateToInitialScreen(_user.value);
     } catch (e) {
       Get.snackbar(
@@ -460,8 +445,9 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+      print('Error during Google sign-in: $e');
     } finally {
-      isLoading.value = false; // Stop loading
+      isLoading.value = false;
     }
   }
 }

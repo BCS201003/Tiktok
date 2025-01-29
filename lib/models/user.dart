@@ -1,17 +1,17 @@
 // lib/models/user.dart
 
-import 'dart:convert'; // For JSON encoding/decoding
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UserModel { // Renamed to UserModel to avoid confusion with FirebaseAuth's User
+class UserModel {
   final String name;
   final String profilePhoto;
   final String email;
   final String uid;
   final String uuid;
-  final String bio; // Added bio field
-  final List<String> followers; // Added followers field
-  final List<String> following; // Added following field
+  final String bio;
+  final List<String> followers;
+  final List<String> following;
 
   UserModel({
     required this.name,

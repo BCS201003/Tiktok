@@ -107,8 +107,6 @@ class ProfileController extends GetxController {
         }
 
         List<dynamic> followers = userSnapshot.get('followers') ?? <String>[];
-        List<dynamic> following =
-            currentUserSnapshot.get('following') ?? <String>[];
 
         if (followers.contains(currentUid)) {
           // If already following, perform unfollow

@@ -7,7 +7,7 @@ class TextInputField extends StatefulWidget {
   final String labelText;
   final String? hintText;
   final bool isObscure;
-  final IconData prefixIcon; // Required parameter
+  final IconData prefixIcon;
   final IconData? suffixIcon;
   final Color? borderColor;
   final Color? focusedBorderColor;
@@ -16,7 +16,7 @@ class TextInputField extends StatefulWidget {
   final TextInputType keyboardType;
   final bool isReadOnly;
   final Function()? onSuffixIconPressed;
-  final String? Function(String?)? validator; // New Validator Parameter
+  final String? Function(String?)? validator;
 
   const TextInputField({
     Key? key,
@@ -33,14 +33,14 @@ class TextInputField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.isReadOnly = false,
     this.onSuffixIconPressed,
-    this.validator, // Initialize Validator
+    this.validator,
   }) : super(key: key);
 
   @override
-  _TextInputFieldState createState() => _TextInputFieldState();
+  TextInputFieldState createState() => TextInputFieldState();
 }
 
-class _TextInputFieldState extends State<TextInputField> {
+class TextInputFieldState extends State<TextInputField> {
   bool _obscureText = false;
 
   @override
@@ -63,16 +63,16 @@ class _TextInputFieldState extends State<TextInputField> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField( // Changed from TextField to TextFormField
+      child: TextFormField(
         controller: widget.controller,
         keyboardType: widget.keyboardType,
         readOnly: widget.isReadOnly,
         obscureText: _obscureText,
-        validator: widget.validator, // Add Validator
+        validator: widget.validator,
         decoration: InputDecoration(
           labelText: widget.labelText,
           hintText: widget.hintText,
-          prefixIcon: Icon(widget.prefixIcon), // Use prefixIcon
+          prefixIcon: Icon(widget.prefixIcon),
           suffixIcon: widget.isObscure
               ? IconButton(
             icon: Icon(
