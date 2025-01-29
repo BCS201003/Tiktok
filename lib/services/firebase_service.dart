@@ -13,29 +13,23 @@ class FirebaseService extends GetxService {
   final FirebaseStorage storage = FirebaseStorage.instance;
 
   /// Uploads the profile picture to Firebase Storage and returns the download URL
-  Future<String> uploadProfilePicture(String uid, File image) async {
+  /// Uploads profile picture to Firebase Storage and returns the download URL
+  Future<String> uploadProfilePicture({
+    required String uid,
+    required File imageFile,
+  }) async {
     try {
-      // Define the storage reference
       Reference ref = storage.ref().child('profile_pictures').child('$uid.jpg');
-
-      // Upload the file to Firebase Storage
-      UploadTask uploadTask = ref.putFile(image);
-
-      // Await the upload task completion
+      UploadTask uploadTask = ref.putFile(imageFile);
       TaskSnapshot snapshot = await uploadTask;
-
-      // Retrieve the download URL
       String downloadUrl = await snapshot.ref.getDownloadURL();
-
+      print('Profile picture uploaded: $downloadUrl');
       return downloadUrl;
     } catch (e) {
-      if (kDebugMode) {
-        print("Error uploading profile picture: $e");
-      }
-      throw Exception('Failed to upload profile picture: $e');
+      print('Error uploading profile picture: $e');
+      return '';
     }
   }
-
   /// Optional: Uploads a video and returns the download URL
   Future<String> uploadVideo(String uid, File video) async {
     try {

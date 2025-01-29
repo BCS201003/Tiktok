@@ -35,19 +35,25 @@ class ProfileController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
+      print('Loading user data for UID: $uid');
+
       // Fetch user data from Firestore
       DocumentSnapshot userSnapshot =
       await _firestore.collection('users').doc(uid).get();
 
       if (userSnapshot.exists) {
+        print('User snapshot exists. Mapping to UserModel.');
         _user.value = UserModel.fromSnap(userSnapshot);
+        print('User data: ${_user.value}');
       } else {
+        print('User snapshot does not exist.');
         _user.value = null;
         errorMessage.value = 'User does not exist.';
         return;
       }
 
       // Fetch user's videos from Firestore
+      print('Fetching videos for UID: $uid');
       QuerySnapshot videosSnapshot = await _firestore
           .collection('videos')
           .where('uid', isEqualTo: uid)
@@ -56,6 +62,8 @@ class ProfileController extends GetxController {
 
       _userVideos.value =
           videosSnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+
+      print('Fetched ${_userVideos.value.length} videos.');
     } catch (e) {
       if (kDebugMode) {
         print("Error loading user data: $e");
@@ -65,6 +73,7 @@ class ProfileController extends GetxController {
       _userVideos.value = [];
     } finally {
       isLoading.value = false;
+      print('Finished loading user data.');
     }
   }
 
@@ -170,20 +179,16 @@ class ProfileController extends GetxController {
         'name': name,
         'bio': bio,
       };
-
       if (profilePicture != null) {
         // Upload the new profile picture to Firebase Storage and get the URL
         String photoUrl =
-        await _firebaseService.uploadProfilePicture(uid, profilePicture);
+        await _firebaseService.uploadProfilePicture(uid: uid, imageFile: profilePicture);
         updateData['profilePhoto'] = photoUrl;
       }
-
       // Update user data in Firestore
       await _firestore.collection('users').doc(uid).update(updateData);
-
       // Reload user data to reflect changes
       await loadUserData(uid);
-
       // Show success message
       Get.snackbar(
         'Success',

@@ -124,4 +124,13 @@ class DatabaseHelper {
     );
     print('User with uid $uid updated with data: $updatedData');
   }
+
+  /// Resets the database by deleting all tables (For Development Only)
+  Future<void> resetDatabase() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS users');
+    print('Users table dropped.');
+    await _onCreate(db, 2); // Recreate the table with version 2
+    print('Database reset completed.');
+  }
 }
