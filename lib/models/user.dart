@@ -1,5 +1,6 @@
 // lib/models/user.dart
 
+import 'dart:convert'; // For JSON encoding/decoding
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel { // Renamed to UserModel to avoid confusion with FirebaseAuth's User
@@ -59,8 +60,12 @@ class UserModel { // Renamed to UserModel to avoid confusion with FirebaseAuth's
       profilePhoto: map['profilePhoto'] ?? '',
       uuid: map['uuid'] ?? '',
       bio: map['bio'] ?? '',
-      followers: List<String>.from(map['followers'] ?? []),
-      following: List<String>.from(map['following'] ?? []),
+      followers: map['followers'] != null
+          ? List<String>.from(jsonDecode(map['followers']))
+          : [],
+      following: map['following'] != null
+          ? List<String>.from(jsonDecode(map['following']))
+          : [],
     );
   }
 }

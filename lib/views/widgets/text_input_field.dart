@@ -1,45 +1,125 @@
 // lib/views/widgets/text_input_field.dart
-import 'package:flutter/material.dart';
-// Removed unused import: import 'package:tiktok_tutorial/constants.dart';
 
-class TextInputField extends StatelessWidget {
+import 'package:flutter/material.dart';
+
+class TextInputField extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
+  final String? hintText;
   final bool isObscure;
-  final IconData icon;
+  final IconData prefixIcon; // Required parameter
+  final IconData? suffixIcon;
+  final Color? borderColor;
+  final Color? focusedBorderColor;
+  final Color? errorBorderColor;
+  final String? errorText;
+  final TextInputType keyboardType;
+  final bool isReadOnly;
+  final Function()? onSuffixIconPressed;
+  final String? Function(String?)? validator; // New Validator Parameter
 
   const TextInputField({
     Key? key,
     required this.controller,
     required this.labelText,
+    this.hintText,
     this.isObscure = false,
-    required this.icon,
+    required this.prefixIcon,
+    this.suffixIcon,
+    this.borderColor,
+    this.focusedBorderColor,
+    this.errorBorderColor,
+    this.errorText,
+    this.keyboardType = TextInputType.text,
+    this.isReadOnly = false,
+    this.onSuffixIconPressed,
+    this.validator, // Initialize Validator
   }) : super(key: key);
 
   @override
+  _TextInputFieldState createState() => _TextInputFieldState();
+}
+
+class _TextInputFieldState extends State<TextInputField> {
+  bool _obscureText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscureText = widget.isObscure;
+  }
+
+  void _toggleObscure() {
+    if (widget.onSuffixIconPressed != null) {
+      widget.onSuffixIconPressed!();
+    } else {
+      setState(() {
+        _obscureText = !_obscureText;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        prefixIcon: Icon(icon),
-        labelStyle: const TextStyle(
-          fontSize: 20,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(5),
-          borderSide: const BorderSide(
-            color: Colors.grey, // Replaced 'borderColor' with Colors.grey
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField( // Changed from TextField to TextFormField
+        controller: widget.controller,
+        keyboardType: widget.keyboardType,
+        readOnly: widget.isReadOnly,
+        obscureText: _obscureText,
+        validator: widget.validator, // Add Validator
+        decoration: InputDecoration(
+          labelText: widget.labelText,
+          hintText: widget.hintText,
+          prefixIcon: Icon(widget.prefixIcon), // Use prefixIcon
+          suffixIcon: widget.isObscure
+              ? IconButton(
+            icon: Icon(
+              _obscureText ? Icons.visibility_off : Icons.visibility,
+            ),
+            onPressed: _toggleObscure,
+          )
+              : (widget.suffixIcon != null
+              ? IconButton(
+            icon: Icon(widget.suffixIcon),
+            onPressed: widget.onSuffixIconPressed,
+          )
+              : null),
+          labelStyle: const TextStyle(
+            fontSize: 16,
+            color: Colors.grey,
           ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(5),
-          borderSide: const BorderSide(
-            color: Colors.grey, // Replaced 'borderColor' with Colors.grey
+          hintStyle: const TextStyle(
+            fontSize: 14,
+            color: Colors.grey,
           ),
+          contentPadding:
+          const EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(
+              color: widget.borderColor ?? Colors.grey,
+              width: 1.5,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(
+              color: widget.focusedBorderColor ?? Colors.blue,
+              width: 2.0,
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(
+              color: widget.errorBorderColor ?? Colors.red,
+              width: 2.0,
+            ),
+          ),
+          errorText: widget.errorText,
         ),
       ),
-      obscureText: isObscure,
     );
   }
 }

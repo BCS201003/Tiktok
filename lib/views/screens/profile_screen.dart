@@ -6,15 +6,13 @@ import 'package:tiktok_tutorial/views/screens/edit_profile_screen.dart';
 import 'package:tiktok_tutorial/views/widgets/video_thumbnail.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String uid; // UID of the user to display
-
+  final String uid;
   const ProfileScreen({Key? key, required this.uid}) : super(key: key);
-
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  ProfileScreenState createState() => ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class ProfileScreenState extends State<ProfileScreen> {
   late ProfileController _controller;
   late String currentUid;
 

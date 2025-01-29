@@ -1,3 +1,5 @@
+// lib/helpers/database_helper.dart
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -6,7 +8,7 @@ class DatabaseHelper {
   factory DatabaseHelper() => _instance;
   DatabaseHelper._internal();
 
-  Database? _database;
+  static Database? _database;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -20,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 2, // Ensure this matches the latest schema version
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -34,22 +36,33 @@ class DatabaseHelper {
         name TEXT,
         email TEXT UNIQUE,
         password TEXT,
-        profilePhoto TEXT,
-        uuid TEXT
+        profilePhoto TEXT NOT NULL,
+        uuid TEXT,
+        bio TEXT,
+        followers TEXT,
+        following TEXT
       )
     ''');
   }
 
   /// Handles database upgrades.
   ///
-  /// NOTE: We remove the UNIQUE constraint from `uuid` to avoid SQLite errors.
+  /// Ensures that new columns are added only when upgrading from a version below 2.
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // Add a plain TEXT column (no UNIQUE here to avoid "Cannot add a UNIQUE column" error).
+      // Add 'uuid' column
       await db.execute('ALTER TABLE users ADD COLUMN uuid TEXT');
-      // If you truly need it unique, create a unique index afterwards:
-      // await db.execute('CREATE UNIQUE INDEX idx_users_uuid ON users (uuid)');
+
+      // Add 'bio' column
+      await db.execute('ALTER TABLE users ADD COLUMN bio TEXT');
+
+      // Add 'followers' column
+      await db.execute('ALTER TABLE users ADD COLUMN followers TEXT');
+
+      // Add 'following' column
+      await db.execute('ALTER TABLE users ADD COLUMN following TEXT');
     }
+    // Handle future migrations here
   }
 
   /// Inserts a new user into the users table
@@ -67,6 +80,16 @@ class DatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'users',
+      columns: [
+        'uid',
+        'name',
+        'email',
+        'profilePhoto',
+        'uuid',
+        'bio',
+        'followers',
+        'following'
+      ],
       where: 'uid = ?',
       whereArgs: [uid],
     );

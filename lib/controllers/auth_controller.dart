@@ -1,6 +1,7 @@
 // lib/controllers/auth_controller.dart
 
 import 'dart:io';
+import 'dart:convert'; // For JSON encoding/decoding
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,6 +25,14 @@ class AuthController extends GetxController {
 
   late Rx<model.UserModel?> _user;
   late Rx<File?> pickedImage;
+
+  // Reactive variable for loading state
+  var isLoading = false.obs;
+
+  // TextEditingController Instances
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
 
   // Getter for current user
   model.UserModel? get currentUser => _user.value;
@@ -55,6 +64,15 @@ class AuthController extends GetxController {
         _navigateToInitialScreen(null);
       }
     });
+  }
+
+  @override
+  void onClose() {
+    super.onClose();
+    // Dispose controllers to free up resources
+    emailController.dispose();
+    passwordController.dispose();
+    usernameController.dispose();
   }
 
   /// Navigates to the appropriate screen based on user authentication
@@ -125,10 +143,18 @@ class AuthController extends GetxController {
         uid: firebaseUser.uid,
         profilePhoto: imagePath,
         uuid: userUUID,
+        bio: '', // Initialize bio as empty string
+        followers: [], // Initialize followers as empty list
+        following: [], // Initialize following as empty list
       );
 
+      // Serialize followers and following
+      Map<String, dynamic> userMap = newUser.toJson();
+      userMap['followers'] = jsonEncode(newUser.followers);
+      userMap['following'] = jsonEncode(newUser.following);
+
       // Insert user into local SQLite
-      await DatabaseHelper().insertUser(newUser.toJson());
+      await DatabaseHelper().insertUser(userMap);
 
       // Insert user into Firestore
       await _firebaseService.firestore.collection('users').doc(newUser.uid).set({
@@ -137,8 +163,9 @@ class AuthController extends GetxController {
         'name': newUser.name,
         'profilePhoto': newUser.profilePhoto,
         'uuid': newUser.uuid,
-        'followers': [],
-        'following': [],
+        'bio': newUser.bio,
+        'followers': newUser.followers,
+        'following': newUser.following,
       });
 
       _user.value = newUser;
@@ -162,6 +189,8 @@ class AuthController extends GetxController {
           email.isNotEmpty &&
           password.isNotEmpty &&
           image != null) {
+        isLoading.value = true; // Start loading
+
         UserCredential cred = await auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
@@ -179,10 +208,18 @@ class AuthController extends GetxController {
           uid: cred.user!.uid,
           profilePhoto: imagePath,
           uuid: userUUID,
+          bio: '', // Initialize bio as empty string
+          followers: [], // Initialize followers as empty list
+          following: [], // Initialize following as empty list
         );
 
+        // Serialize followers and following
+        Map<String, dynamic> userMap = user.toJson();
+        userMap['followers'] = jsonEncode(user.followers);
+        userMap['following'] = jsonEncode(user.following);
+
         // Insert user into local SQLite
-        await DatabaseHelper().insertUser(user.toJson());
+        await DatabaseHelper().insertUser(userMap);
 
         // Insert user into Firestore
         await _firebaseService.firestore.collection('users').doc(user.uid).set({
@@ -191,8 +228,9 @@ class AuthController extends GetxController {
           'name': user.name,
           'profilePhoto': user.profilePhoto,
           'uuid': user.uuid,
-          'followers': [],
-          'following': [],
+          'bio': user.bio,
+          'followers': user.followers,
+          'following': user.following,
         });
 
         _user.value = user;
@@ -214,6 +252,8 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+    } finally {
+      isLoading.value = false; // Stop loading
     }
   }
 
@@ -221,6 +261,8 @@ class AuthController extends GetxController {
   Future<void> loginUser(String email, String password) async {
     try {
       if (email.isNotEmpty && password.isNotEmpty) {
+        isLoading.value = true; // Start loading
+
         UserCredential cred = await auth.signInWithEmailAndPassword(
           email: email,
           password: password,
@@ -242,6 +284,9 @@ class AuthController extends GetxController {
               uid: user.uid,
               profilePhoto: user.profilePhoto,
               uuid: newUUID,
+              bio: user.bio,
+              followers: user.followers,
+              following: user.following,
             );
             Get.snackbar(
               'Success',
@@ -258,17 +303,15 @@ class AuthController extends GetxController {
               .doc(user.uid)
               .get();
           if (!docSnap.exists) {
-            await _firebaseService.firestore
-                .collection('users')
-                .doc(user.uid)
-                .set({
+            await _firebaseService.firestore.collection('users').doc(user.uid).set({
               'uid': user.uid,
               'email': user.email,
               'name': user.name,
               'profilePhoto': user.profilePhoto,
               'uuid': user.uuid,
-              'followers': [],
-              'following': [],
+              'bio': user.bio,
+              'followers': user.followers,
+              'following': user.following,
             });
           }
 
@@ -276,7 +319,7 @@ class AuthController extends GetxController {
           _navigateToInitialScreen(user);
         } else {
           // User not found locally, create user document
-          _createUserDocument(cred.user!);
+          await _createUserDocument(cred.user!);
         }
       } else {
         Get.snackbar(
@@ -295,6 +338,8 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+    } finally {
+      isLoading.value = false; // Stop loading
     }
   }
 
@@ -312,6 +357,7 @@ class AuthController extends GetxController {
   /// Signs out the current user
   Future<void> signOut() async {
     try {
+      isLoading.value = true; // Start loading
       await auth.signOut();
       _user.value = null;
       _navigateToInitialScreen(null);
@@ -323,16 +369,21 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+    } finally {
+      isLoading.value = false; // Stop loading
     }
   }
 
   /// Signs in the user using Google Sign-In
   Future<void> signInWithGoogle() async {
     try {
+      isLoading.value = true; // Start loading
+
       // Initiate Google Sign-In flow
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         // User canceled the sign-in
+        isLoading.value = false;
         return;
       }
 
@@ -368,8 +419,17 @@ class AuthController extends GetxController {
           uid: uid,
           profilePhoto: profilePic,
           uuid: userUUID,
+          bio: '', // Initialize bio as empty string
+          followers: [], // Initialize followers as empty list
+          following: [], // Initialize following as empty list
         );
-        await DatabaseHelper().insertUser(newUser.toJson());
+
+        // Serialize followers and following
+        Map<String, dynamic> userMap = newUser.toJson();
+        userMap['followers'] = jsonEncode(newUser.followers);
+        userMap['following'] = jsonEncode(newUser.following);
+
+        await DatabaseHelper().insertUser(userMap);
 
         // Create Firestore user document
         await _firebaseService.firestore.collection('users').doc(uid).set({
@@ -378,13 +438,14 @@ class AuthController extends GetxController {
           'name': displayName,
           'profilePhoto': profilePic,
           'uuid': userUUID,
-          'followers': [],
-          'following': [],
+          'bio': newUser.bio,
+          'followers': newUser.followers,
+          'following': newUser.following,
         });
 
         _user.value = newUser;
       } else {
-        // User exists locally, set as current user
+        // User exists locally, deserialize followers and following
         final existingUser = model.UserModel.fromMap(userInDB);
         _user.value = existingUser;
       }
@@ -399,6 +460,8 @@ class AuthController extends GetxController {
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
+    } finally {
+      isLoading.value = false; // Stop loading
     }
   }
 }
